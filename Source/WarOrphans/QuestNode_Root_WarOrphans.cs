@@ -16,7 +16,7 @@ namespace WarOrphans
             Slate slate = QuestGen.slate;
             Map map = QuestGen_Get.GetMap();
 
-            int orphanCount = Rand.RangeInclusive(1, 5);
+            int orphanCount = Rand.RangeInclusive(1, 7);
 
             // Pick a random non-hostile, non-player humanlike faction that has settlements
             Faction faction = Find.FactionManager.AllFactions
@@ -38,36 +38,20 @@ namespace WarOrphans
 
             PawnKindDef pawnKind = faction.def.basicMemberKind ?? PawnKindDefOf.Villager;
 
-            // Get the faction's xenotype if it has one
-            XenotypeDef xenotype = null;
+            // Build the faction's xenotype chance list for per-pawn rolls
+            List<XenotypeChance> xenotypeChances = new List<XenotypeChance>();
             XenotypeSet xenoSet = faction.def.xenotypeSet;
             if (xenoSet != null && xenoSet.Count > 0)
             {
-                // Build a weighted list from the indexer
-                List<XenotypeChance> chances = new List<XenotypeChance>();
                 for (int i = 0; i < xenoSet.Count; i++)
-                    chances.Add(xenoSet[i]);
-                xenotype = chances.RandomElementByWeight(x => x.chance).xenotype;
+                    xenotypeChances.Add(xenoSet[i]);
             }
 
-            // Store values for quest text generation
-            string xenotypeName = xenotype != null ? xenotype.label : "Baseliner";
             string factionName = faction.Name;
 
             slate.Set("orphanCount", orphanCount);
             slate.Set("map", map);
             slate.Set("faction", faction);
-
-            // Quest description rules
-            List<Rule> rules = new List<Rule>
-            {
-                new Rule_String("place", place),
-                new Rule_String("orphanCount", orphanCount.ToString()),
-                new Rule_String("xenotypeName", xenotypeName),
-                new Rule_String("factionName", factionName)
-            };
-            QuestGen.AddQuestDescriptionRules(rules);
-            QuestGen.AddQuestNameRules(rules);
 
             // Group orphans into sibling families, then generate them
             // Each orphan has a 60% chance of being a sibling of the previous one
@@ -85,17 +69,18 @@ namespace WarOrphans
                 }
             }
 
-            // Generate dead parents for each family
+            // Generate dead parents for each family, each child rolls their own xenotype
             List<Pawn> orphans = new List<Pawn>();
             Pawn[] generated = new Pawn[orphanCount];
             foreach (List<int> family in families)
             {
-                Pawn mother = GenerateDeadParent(Gender.Female, pawnKind, xenotype);
-                Pawn father = GenerateDeadParent(Gender.Male, pawnKind, xenotype);
+                Pawn mother = GenerateDeadParent(Gender.Female, pawnKind, RollXenotype(xenotypeChances));
+                Pawn father = GenerateDeadParent(Gender.Male, pawnKind, RollXenotype(xenotypeChances));
 
                 foreach (int idx in family)
                 {
                     float age = Rand.Range(0.1f, 13f);
+                    XenotypeDef childXenotype = RollXenotype(xenotypeChances);
                     PawnGenerationRequest request = new PawnGenerationRequest(
                         kind: pawnKind,
                         faction: null,
@@ -105,7 +90,7 @@ namespace WarOrphans
                         fixedChronologicalAge: age,
                         canGeneratePawnRelations: false,
                         colonistRelationChanceFactor: 0f,
-                        forcedXenotype: xenotype
+                        forcedXenotype: childXenotype
                     );
                     Pawn child = PawnGenerator.GeneratePawn(request);
 
@@ -116,6 +101,22 @@ namespace WarOrphans
                     {
                         if (sibIdx < idx && generated[sibIdx] != null)
                             child.relations.AddDirectRelation(PawnRelationDefOf.Sibling, generated[sibIdx]);
+                    }
+
+                    // War trauma — severity scales with age (older = more aware = worse)
+                    // Babies and toddlers (under 3) are too young to understand
+                    int childAge = child.ageTracker.AgeBiologicalYears;
+                    if (childAge >= 3)
+                    {
+                        float traumaSeverity = childAge / 13f; // age 3 = 0.23, age 13 = 1.0
+                        HediffDef traumaDef = DefDatabase<HediffDef>.GetNamed("WarOrphans_WarTrauma");
+                        Hediff trauma = HediffMaker.MakeHediff(traumaDef, child);
+                        trauma.Severity = traumaSeverity;
+                        child.health.AddHediff(trauma);
+
+                        // Sad memory: parents died
+                        ThoughtDef parentsDied = DefDatabase<ThoughtDef>.GetNamed("WarOrphans_ParentsDied");
+                        child.needs?.mood?.thoughts?.memories?.TryGainMemory(parentsDied);
                     }
 
                     generated[idx] = child;
@@ -137,6 +138,30 @@ namespace WarOrphans
                 }
             }
 
+            // Summarize xenotypes for quest text (e.g. "3 Baseliner and 2 Neanderthal")
+            var xenotypeCounts = orphans
+                .GroupBy(p => p.genes?.Xenotype?.label ?? "Baseliner")
+                .Select(g => g.Count() + " " + g.Key)
+                .ToList();
+            string xenotypeSummary = string.Join(" and ", xenotypeCounts);
+
+            // Challenge rating scales with number of children
+            if (orphanCount <= 1) quest.challengeRating = 1;
+            else if (orphanCount <= 3) quest.challengeRating = 2;
+            else if (orphanCount <= 5) quest.challengeRating = 3;
+            else quest.challengeRating = 4;
+
+            // Quest description rules
+            List<Rule> rules = new List<Rule>
+            {
+                new Rule_String("place", place),
+                new Rule_String("orphanCount", orphanCount.ToString()),
+                new Rule_String("xenotypeSummary", xenotypeSummary),
+                new Rule_String("factionName", factionName)
+            };
+            QuestGen.AddQuestDescriptionRules(rules);
+            QuestGen.AddQuestNameRules(rules);
+
             // Reserve pawns and set up arrival
             quest.ReservePawns(orphans);
 
@@ -150,7 +175,7 @@ namespace WarOrphans
                 arrivalMode: PawnsArrivalModeDefOf.EdgeWalkIn,
                 joinPlayer: true,
                 customLetterLabel: "War Orphans Arrived",
-                customLetterText: orphanCount + " " + xenotypeName + " orphans from " + factionName
+                customLetterText: xenotypeSummary + " orphans from " + factionName
                     + " have arrived. Please take good care of them."
             );
 
@@ -159,9 +184,16 @@ namespace WarOrphans
 
             // Quest offer description
             string questDescription = place + " has been devastated by war. " + factionName
-                + " are desperate — they have " + orphanCount + " " + xenotypeName
+                + " are desperate — they have " + xenotypeSummary
                 + " orphaned children who will die without someone to care for them. They beg you to take them in.";
             slate.Set("questDescription", questDescription);
+        }
+
+        private XenotypeDef RollXenotype(List<XenotypeChance> chances)
+        {
+            if (chances.NullOrEmpty())
+                return null;
+            return chances.RandomElementByWeight(x => x.chance).xenotype;
         }
 
         private Pawn GenerateDeadParent(Gender gender, PawnKindDef pawnKind, XenotypeDef xenotype)
@@ -186,7 +218,6 @@ namespace WarOrphans
 
         protected override bool TestRunInt(Slate slate)
         {
-            // Quest requires a map and at least one non-hostile faction with settlements
             if (QuestGen_Get.GetMap() == null)
                 return false;
 

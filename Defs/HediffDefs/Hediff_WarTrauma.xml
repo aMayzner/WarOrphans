@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+  <HediffDef>
+    <defName>WarOrphans_WarTrauma</defName>
+    <label>war trauma</label>
+    <description>This child witnessed the horrors of war and the death of their parents. The psychological scars will fade with time, but for now they suffer from nightmares, anxiety, and deep sadness.</description>
+    <hediffClass>HediffWithComps</hediffClass>
+    <isBad>true</isBad>
+    <initialSeverity>0.5</initialSeverity>
+    <maxSeverity>1.0</maxSeverity>
+    <scenarioCanAdd>false</scenarioCanAdd>
+    <comps>
+      <!-- Severity slowly decreases over time — heals on its own -->
+      <li Class="HediffCompProperties_SelfHeal">
+        <!-- Heals 0.02 severity every 2 days (120000 ticks) -->
+        <!-- At max severity (1.0), takes ~100 days to fully heal -->
+        <healIntervalTicksStanding>120000</healIntervalTicksStanding>
+        <healAmount>0.02</healAmount>
+      </li>
+    </comps>
+    <stages>
+      <!-- Severity 0.0 - 0.25: Lingering sadness (fading) -->
+      <li>
+        <label>fading</label>
+        <minSeverity>0</minSeverity>
+        <overrideMoodBase>-3</overrideMoodBase>
+      </li>
+      <!-- Severity 0.25 - 0.5: Troubled -->
+      <li>
+        <label>troubled</label>
+        <minSeverity>0.25</minSeverity>
+        <overrideMoodBase>-8</overrideMoodBase>
+        <mentalBreakMtbDays>40</mentalBreakMtbDays>
+        <allowedMentalBreakIntensities>
+          <li>Minor</li>
+        </allowedMentalBreakIntensities>
+      </li>
+      <!-- Severity 0.5 - 0.75: Severe -->
+      <li>
+        <label>severe</label>
+        <minSeverity>0.5</minSeverity>
+        <overrideMoodBase>-15</overrideMoodBase>
+        <mentalBreakMtbDays>20</mentalBreakMtbDays>
+        <allowedMentalBreakIntensities>
+          <li>Minor</li>
+          <li>Major</li>
+        </allowedMentalBreakIntensities>
+        <capMods>
+          <li>
+            <capacity>Consciousness</capacity>
+            <offset>-0.05</offset>
+          </li>
+        </capMods>
+      </li>
+      <!-- Severity 0.75 - 1.0: Extreme -->
+      <li>
+        <label>extreme</label>
+        <minSeverity>0.75</minSeverity>
+        <overrideMoodBase>-22</overrideMoodBase>
+        <mentalBreakMtbDays>8</mentalBreakMtbDays>
+        <allowedMentalBreakIntensities>
+          <li>Minor</li>
+          <li>Major</li>
+          <li>Extreme</li>
+        </allowedMentalBreakIntensities>
+        <capMods>
+          <li>
+            <capacity>Consciousness</capacity>
+            <offset>-0.10</offset>
+          </li>
+          <li>
+            <capacity>Moving</capacity>
+            <offset>-0.10</offset>
+          </li>
+        </capMods>
+      </li>
+    </stages>
+  </HediffDef>
+</Defs>

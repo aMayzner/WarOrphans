@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+  <!-- Memory thought: my parents died in the war -->
+  <ThoughtDef>
+    <defName>WarOrphans_ParentsDied</defName>
+    <thoughtClass>Thought_Memory</thoughtClass>
+    <durationDays>30</durationDays>
+    <stackLimit>1</stackLimit>
+    <stages>
+      <li>
+        <label>parents killed in war</label>
+        <description>My parents were killed in the war. I'll never see them again.</description>
+        <baseMoodEffect>-12</baseMoodEffect>
+      </li>
+    </stages>
+  </ThoughtDef>
+</Defs>
