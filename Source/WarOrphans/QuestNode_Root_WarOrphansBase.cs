@@ -237,9 +237,16 @@ namespace WarOrphans
 
             quest.Signal(signalReject, delegate
             {
-                // Rejecting children hurts relations
+                // Rejecting children hurts relations and mood
                 QuestGen_End.End(quest, QuestEndOutcome.Fail,
                     goodwillChangeAmount: -10, goodwillChangeFactionOf: faction);
+            });
+
+            ThoughtDef rejectedOrphans = DefDatabase<ThoughtDef>.GetNamed("WarOrphans_RejectedOrphans");
+            quest.Signal(signalReject, delegate
+            {
+                foreach (Pawn colonist in map.mapPawns.FreeColonists)
+                    colonist.needs?.mood?.thoughts?.memories?.TryGainMemory(rejectedOrphans);
             });
 
             quest.Delay(TimeoutTicks, delegate
