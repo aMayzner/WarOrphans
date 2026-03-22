@@ -159,6 +159,7 @@ namespace WarOrphans
             letter.signalAccept = signalAccept;
             letter.signalReject = signalReject;
             letter.quest = quest;
+            letter.overrideMap = map;
             letter.StartTimeout(TimeoutTicks);
             Find.LetterStack.ReceiveLetter(letter);
         }
