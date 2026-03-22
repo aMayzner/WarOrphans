@@ -17,12 +17,10 @@ namespace WarOrphans
 
             int orphanCount = Rand.RangeInclusive(1, 7);
 
-            // Pick a random non-hostile, non-player humanlike faction that has settlements
             Faction faction = FindValidFaction();
 
             if (faction == null)
             {
-                // Must always set description or quest generation errors
                 slate.Set("resolvedQuestDescription", "No suitable faction found.");
                 return;
             }
@@ -50,8 +48,7 @@ namespace WarOrphans
             slate.Set("map", map);
             slate.Set("faction", faction);
 
-            // Group orphans into sibling families, then generate them
-            // Each orphan has a 60% chance of being a sibling of the previous one
+            // Group orphans into sibling families
             List<List<int>> families = new List<List<int>>();
             List<int> currentFamily = new List<int> { 0 };
             families.Add(currentFamily);
@@ -66,17 +63,13 @@ namespace WarOrphans
                 }
             }
 
-            // Generate dead parents for each family, each child rolls their own xenotype
+            // Generate dead parents and children
             List<Pawn> orphans = new List<Pawn>();
             Pawn[] generated = new Pawn[orphanCount];
             foreach (List<int> family in families)
             {
                 Pawn mother = GenerateDeadParent(Gender.Female, pawnKind, RollXenotype(xenotypeChances));
                 Pawn father = GenerateDeadParent(Gender.Male, pawnKind, RollXenotype(xenotypeChances));
-
-                // Dead parents must be world pawns for relations to show up
-                Find.WorldPawns.PassToWorld(mother);
-                Find.WorldPawns.PassToWorld(father);
 
                 foreach (int idx in family)
                 {
@@ -104,23 +97,21 @@ namespace WarOrphans
                             child.relations.AddDirectRelation(PawnRelationDefOf.Sibling, generated[sibIdx]);
                     }
 
-                    // War trauma — severity scales with age (older = more aware = worse)
-                    // Babies and toddlers (under 3) are too young to understand
+                    // War trauma scaled by age
                     int childAge = child.ageTracker.AgeBiologicalYears;
                     if (childAge >= 3)
                     {
-                        float traumaSeverity = childAge / 13f; // age 3 = 0.23, age 13 = 1.0
+                        float traumaSeverity = childAge / 13f;
                         HediffDef traumaDef = DefDatabase<HediffDef>.GetNamed("WarOrphans_WarTrauma");
                         Hediff trauma = HediffMaker.MakeHediff(traumaDef, child);
                         trauma.Severity = traumaSeverity;
                         child.health.AddHediff(trauma);
 
-                        // Sad memory: parents died
                         ThoughtDef parentsDied = DefDatabase<ThoughtDef>.GetNamed("WarOrphans_ParentsDied");
                         child.needs?.mood?.thoughts?.memories?.TryGainMemory(parentsDied);
                     }
 
-                    // Register as world pawn so RimWorld can spawn them on quest accept
+                    // Must be a world pawn for quest system to work
                     if (!child.IsWorldPawn())
                         Find.WorldPawns.PassToWorld(child);
 
@@ -143,45 +134,39 @@ namespace WarOrphans
                 }
             }
 
-            // Summarize xenotypes for quest text (e.g. "3 Baseliner and 2 Neanderthal")
+            // Summarize xenotypes for quest text
             var xenotypeCounts = orphans
                 .GroupBy(p => p.genes?.Xenotype?.label ?? "Baseliner")
                 .Select(g => g.Count() + " " + g.Key)
                 .ToList();
             string xenotypeSummary = string.Join(" and ", xenotypeCounts);
 
-            // Challenge rating scales with number of children
+            // Challenge rating
             if (orphanCount <= 1) quest.challengeRating = 1;
             else if (orphanCount <= 3) quest.challengeRating = 2;
             else if (orphanCount <= 5) quest.challengeRating = 3;
             else quest.challengeRating = 4;
 
-            // Quest description — set directly on slate to bypass grammar resolution
+            // Quest description
             string questDescription = place + " has been devastated by war. " + factionName
                 + " are desperate — they have " + xenotypeSummary
                 + " orphaned children who will die without someone to care for them. They beg you to take them in.";
             slate.Set("resolvedQuestDescription", questDescription);
 
-            // Reserve pawns and set up arrival
+            // Reserve pawns
             quest.ReservePawns(orphans);
 
-            string acceptSignal = QuestGenUtility.HardcodedSignalWithQuestID("quest.accepted");
-
-            // Use PawnsArrive with joinPlayer:true — handles faction assignment automatically
-            quest.PawnsArrive(
-                pawns: orphans,
-                inSignal: acceptSignal,
-                mapParent: map.Parent,
-                arrivalMode: PawnsArrivalModeDefOf.EdgeWalkIn,
-                joinPlayer: true,
-                customLetterLabel: "War Orphans Arrived",
-                customLetterText: xenotypeSummary + " orphans from " + factionName
-                    + " have arrived. Please take good care of them."
-            );
-
-            // End quest after acceptance
-            quest.End(QuestEndOutcome.Success, inSignal: acceptSignal);
-
+            // On accept: set faction then spawn — matches vanilla WandererJoin pattern
+            string signalAccept = QuestGenUtility.HardcodedSignalWithQuestID("quest.accepted");
+            quest.Signal(signalAccept, delegate
+            {
+                quest.SetFaction(orphans.Cast<Thing>(), Faction.OfPlayer);
+                quest.PawnsArrive(orphans, null, map.Parent, PawnsArrivalModeDefOf.EdgeWalkIn,
+                    customLetterLabel: "War Orphans Arrived",
+                    customLetterText: xenotypeSummary + " orphans from " + factionName
+                        + " have arrived. Please take good care of them.");
+                quest.End(QuestEndOutcome.Success);
+            });
         }
 
         private XenotypeDef RollXenotype(List<XenotypeChance> chances)
@@ -213,13 +198,16 @@ namespace WarOrphans
 
         private Faction FindValidFaction()
         {
-            return Find.FactionManager.AllFactions
-                .Where(f => f != Faction.OfPlayer
-                    && !f.Hidden
-                    && f.def.humanlikeFaction
-                    && !f.HostileTo(Faction.OfPlayer)
-                    && Find.WorldObjects.Settlements.Any(s => s.Faction == f))
-                .RandomElementWithFallback(null);
+            foreach (Faction f in Find.FactionManager.AllFactions)
+            {
+                if (f == Faction.OfPlayer) continue;
+                if (f.Hidden) continue;
+                if (!f.def.humanlikeFaction) continue;
+                if (f.HostileTo(Faction.OfPlayer)) continue;
+                if (!Find.WorldObjects.Settlements.Any(s => s.Faction == f)) continue;
+                return f;
+            }
+            return null;
         }
 
         protected override bool TestRunInt(Slate slate)
