@@ -152,10 +152,8 @@ namespace WarOrphans
             string childName = child.Name.ToStringShort;
             string questDescription = childName + " is the sole survivor of " + place + "'s destruction. "
                 + factionName + " found " + child.gender.GetPronoun() + " wandering alone, "
-                + "barely alive, covered in wounds. Everyone else is dead — "
-                + child.gender.GetPossessive() + " parents, "
-                + child.gender.GetPossessive() + " siblings, everyone "
-                + childName + " ever knew. "
+                + "barely alive, covered in wounds. Everyone " + childName
+                + " ever knew is dead. "
                 + childName + " has nowhere left to go. Will you take "
                 + child.gender.GetObjective() + " in?";
             slate.Set("resolvedQuestDescription", questDescription);
