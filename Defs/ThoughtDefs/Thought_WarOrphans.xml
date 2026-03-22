@@ -89,6 +89,21 @@
     </stages>
   </ThoughtDef>
 
+  <!-- Colony-wide mood boost when accepting orphans -->
+  <ThoughtDef>
+    <defName>WarOrphans_TookInOrphans</defName>
+    <thoughtClass>Thought_Memory</thoughtClass>
+    <durationDays>10</durationDays>
+    <stackLimit>1</stackLimit>
+    <stages>
+      <li>
+        <label>we took in war orphans</label>
+        <description>We gave shelter to children who had nowhere else to go. That's something to be proud of.</description>
+        <baseMoodEffect>5</baseMoodEffect>
+      </li>
+    </stages>
+  </ThoughtDef>
+
   <ThoughtDef>
     <defName>WarOrphans_Recovery_Healed</defName>
     <thoughtClass>Thought_Memory</thoughtClass>

@@ -24,9 +24,9 @@ namespace WarOrphans
                 + " They beg you to take them in.";
         }
 
-        protected override string BuildLetterLabel(string factionName)
+        protected override string BuildLetterLabel(string place, string factionName)
         {
-            return "War Orphans from " + factionName;
+            return "The Children of " + place;
         }
     }
 }

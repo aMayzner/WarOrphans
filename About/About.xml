@@ -22,14 +22,16 @@
     <li>ludeon.rimworld.biotech</li>
   </loadAfter>
   <packageId>anna.warorphans</packageId>
-  <description>War Orphans adds a quest where war-torn settlements beg you to take in their orphaned children.
+  <description>War-torn settlements beg you to take in their orphaned children. Three quest variants with deep narrative, trauma mechanics, and recovery arcs.
 
-Features:
-- Receive up to 7 orphaned children of any age, from babies to teens
-- Children roll xenotypes from the faction's distribution, can be mixed
-- Orphans come in sibling groups with shared dead parents
-- Older children carry babies and toddlers who can't walk
-- Parents show as deceased in the social tab
+Quests:
+- War Orphans — up to 7 children from a faction's settlement, mixed xenotypes, sibling families
+- Persecuted Orphans — children hunted for their xenotype, all share one race
+- Sole Survivor — one child, everyone they knew is dead. Worst condition, but survival skills. Risk of retribution raid
 
-Requires Biotech DLC for child mechanics.</description>
+The children arrive malnourished, injured, in tattered clothes, with war trauma that fades over time. As they recover, you'll see milestones — "the nightmares are less frequent", "starting to feel safe", and finally "this place is home."
+
+Accepting orphans boosts colony mood and faction relations. Rejecting them has consequences. Works with Ideology charity precepts.
+
+Requires Biotech DLC.</description>
 </ModMetaData>

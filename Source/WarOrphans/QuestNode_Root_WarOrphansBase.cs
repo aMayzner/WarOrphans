@@ -12,8 +12,7 @@ namespace WarOrphans
         private const int TimeoutTicks = 120000; // 2 days to decide
 
         protected abstract string BuildQuestDescription(string place, string factionName, List<Pawn> orphans);
-        protected abstract string BuildLetterLabel(string factionName);
-
+        protected abstract string BuildLetterLabel(string place, string factionName);
         protected abstract XenotypeDef PickXenotype(List<XenotypeChance> xenotypeChances, float baselinerChance);
 
         protected override void RunInt()
@@ -108,6 +107,21 @@ namespace WarOrphans
                     malnutrition.Severity = Rand.Range(0.15f, 0.6f);
                     child.health.AddHediff(malnutrition);
 
+                    // Temperature exposure based on current map conditions
+                    float temperature = map.mapTemperature.OutdoorTemp;
+                    if (temperature < 0f)
+                    {
+                        Hediff hypo = HediffMaker.MakeHediff(HediffDefOf.Hypothermia, child);
+                        hypo.Severity = Rand.Range(0.1f, 0.4f);
+                        child.health.AddHediff(hypo);
+                    }
+                    else if (temperature > 35f)
+                    {
+                        Hediff heat = HediffMaker.MakeHediff(HediffDefOf.Heatstroke, child);
+                        heat.Severity = Rand.Range(0.1f, 0.4f);
+                        child.health.AddHediff(heat);
+                    }
+
                     // Injuries — older children had more exposure
                     float injuryChance = childAge / 13f;
                     int injuryCount = 0;
@@ -123,12 +137,10 @@ namespace WarOrphans
                         injuryChance *= 0.6f;
                     }
 
-                    // Small chance of a missing body part (healed, not fresh)
-                    // Older children have higher chance: age 3 = ~3%, age 13 = ~15%
+                    // Small chance of missing body part
                     float missingPartChance = childAge / 90f;
                     if (Rand.Chance(missingPartChance))
                     {
-                        // Only pick non-vital outside parts (limbs, fingers, ears, eyes)
                         BodyPartRecord limbPart = child.health.hediffSet.GetNotMissingParts(
                                 BodyPartHeight.Undefined, BodyPartDepth.Outside)
                             .Where(p => !p.def.tags.NullOrEmpty()
@@ -196,9 +208,7 @@ namespace WarOrphans
             {
                 foreach (Pawn colonist in colonists)
                 {
-                    // Orphan is grateful to each colonist
                     orphan.needs?.mood?.thoughts?.memories?.TryGainMemory(rescuedMe, colonist);
-                    // Colonist feels good about each orphan
                     colonist.needs?.mood?.thoughts?.memories?.TryGainMemory(rescuedOrphan, orphan);
                 }
             }
@@ -227,17 +237,28 @@ namespace WarOrphans
 
             quest.Signal(signalReject, delegate
             {
-                QuestGen_End.End(quest, QuestEndOutcome.Fail);
+                // Rejecting children hurts relations
+                QuestGen_End.End(quest, QuestEndOutcome.Fail,
+                    goodwillChangeAmount: -10, goodwillChangeFactionOf: faction);
             });
 
             quest.Delay(TimeoutTicks, delegate
             {
-                QuestGen_End.End(quest, QuestEndOutcome.Fail);
+                QuestGen_End.End(quest, QuestEndOutcome.Fail,
+                    goodwillChangeAmount: -5, goodwillChangeFactionOf: faction);
             });
 
-            // Accept/reject letter
+            // Colony-wide mood boost on accept
+            ThoughtDef tookInOrphans = DefDatabase<ThoughtDef>.GetNamed("WarOrphans_TookInOrphans");
+            quest.Signal(signalAccept, delegate
+            {
+                foreach (Pawn colonist in map.mapPawns.FreeColonists)
+                    colonist.needs?.mood?.thoughts?.memories?.TryGainMemory(tookInOrphans);
+            });
+
+            // Accept/reject letter — named after the settlement
             ChoiceLetter_AcceptJoiner letter = (ChoiceLetter_AcceptJoiner)LetterMaker.MakeLetter(
-                BuildLetterLabel(factionName), questDescription, LetterDefOf.AcceptJoiner);
+                BuildLetterLabel(place, factionName), questDescription, LetterDefOf.AcceptJoiner);
             letter.signalAccept = signalAccept;
             letter.signalReject = signalReject;
             letter.quest = quest;

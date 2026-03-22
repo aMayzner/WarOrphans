@@ -46,10 +46,10 @@ namespace WarOrphans
                 + " These children have nowhere to go. Will you take them in?";
         }
 
-        protected override string BuildLetterLabel(string factionName)
+        protected override string BuildLetterLabel(string place, string factionName)
         {
             string xenoLabel = chosenXenotype?.label ?? "refugees";
-            return "Persecuted " + xenoLabel + " orphans";
+            return "Persecuted " + xenoLabel + " children of " + place;
         }
     }
 }
