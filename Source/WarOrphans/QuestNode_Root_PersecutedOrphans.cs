@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
+using RimWorld.QuestGen;
 using Verse;
 
 namespace WarOrphans
@@ -9,23 +10,27 @@ namespace WarOrphans
     {
         private XenotypeDef chosenXenotype;
 
+        protected override void RunInt()
+        {
+            // Reset per generation — RimWorld reuses the same node instance
+            chosenXenotype = null;
+
+            // Pick a random non-Baseliner xenotype
+            List<XenotypeDef> candidates = DefDatabase<XenotypeDef>.AllDefsListForReading
+                .Where(x => x != XenotypeDefOf.Baseliner
+                    && x.inheritable
+                    && !x.defName.Contains("Android"))
+                .ToList();
+
+            chosenXenotype = candidates.Count > 0
+                ? candidates.RandomElement()
+                : XenotypeDefOf.Baseliner;
+
+            base.RunInt();
+        }
+
         protected override XenotypeDef PickXenotype(List<XenotypeChance> xenotypeChances, float baselinerChance)
         {
-            // All children share the same xenotype — they're persecuted for what they are
-            if (chosenXenotype == null)
-            {
-                // Pick a random non-Baseliner xenotype from the game
-                List<XenotypeDef> candidates = DefDatabase<XenotypeDef>.AllDefsListForReading
-                    .Where(x => x != XenotypeDefOf.Baseliner
-                        && x.inheritable
-                        && !x.defName.Contains("Android"))
-                    .ToList();
-
-                if (candidates.Count > 0)
-                    chosenXenotype = candidates.RandomElement();
-                else
-                    chosenXenotype = XenotypeDefOf.Baseliner;
-            }
             return chosenXenotype;
         }
 
