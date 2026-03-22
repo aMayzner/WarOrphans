@@ -146,7 +146,7 @@ namespace WarOrphans
             if (orphans.Count == 0)
                 return;
 
-            // Permanent "escaped war together" social bond
+            // Permanent "escaped war together" social bond between orphans
             ThoughtDef escapedTogether = DefDatabase<ThoughtDef>.GetNamed("WarOrphans_EscapedWarTogether");
             for (int a = 0; a < orphans.Count; a++)
             {
@@ -158,6 +158,21 @@ namespace WarOrphans
                         thought.permanent = true;
                         orphans[a].needs?.mood?.thoughts?.memories?.TryGainMemory(thought, orphans[b]);
                     }
+                }
+            }
+
+            // Mutual gratitude between orphans and existing colonists
+            ThoughtDef rescuedMe = DefDatabase<ThoughtDef>.GetNamed("WarOrphans_RescuedMe");
+            ThoughtDef rescuedOrphan = DefDatabase<ThoughtDef>.GetNamed("WarOrphans_RescuedOrphan");
+            List<Pawn> colonists = map.mapPawns.FreeColonists.ToList();
+            foreach (Pawn orphan in orphans)
+            {
+                foreach (Pawn colonist in colonists)
+                {
+                    // Orphan is grateful to each colonist
+                    orphan.needs?.mood?.thoughts?.memories?.TryGainMemory(rescuedMe, colonist);
+                    // Colonist feels good about each orphan
+                    colonist.needs?.mood?.thoughts?.memories?.TryGainMemory(rescuedOrphan, orphan);
                 }
             }
 

@@ -14,6 +14,8 @@
     <autoAccept>true</autoAccept>
     <defaultHidden>true</defaultHidden>
     <isRootSpecial>true</isRootSpecial>
+    <successHistoryEvent MayRequire="Ludeon.RimWorld.Ideology">CharityFulfilled_WandererJoins</successHistoryEvent>
+    <failedOrExpiredHistoryEvent MayRequire="Ludeon.RimWorld.Ideology">CharityRefused_WandererJoins</failedOrExpiredHistoryEvent>
     <questNameRules>
       <rulesStrings>
         <li>questName->War Orphans</li>
@@ -43,6 +45,8 @@
     <autoAccept>true</autoAccept>
     <defaultHidden>true</defaultHidden>
     <isRootSpecial>true</isRootSpecial>
+    <successHistoryEvent MayRequire="Ludeon.RimWorld.Ideology">CharityFulfilled_WandererJoins</successHistoryEvent>
+    <failedOrExpiredHistoryEvent MayRequire="Ludeon.RimWorld.Ideology">CharityRefused_WandererJoins</failedOrExpiredHistoryEvent>
     <questNameRules>
       <rulesStrings>
         <li>questName->Persecuted Orphans</li>

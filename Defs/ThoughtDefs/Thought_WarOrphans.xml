@@ -15,7 +15,7 @@
     </stages>
   </ThoughtDef>
 
-  <!-- Social thought: bond from escaping war together -->
+  <!-- Social thought: bond from escaping war together (permanent) -->
   <ThoughtDef>
     <defName>WarOrphans_EscapedWarTogether</defName>
     <thoughtClass>Thought_MemorySocial</thoughtClass>
@@ -26,6 +26,36 @@
         <label>escaped war together</label>
         <description>We escaped the war together. That's a bond that doesn't break easily.</description>
         <baseOpinionOffset>25</baseOpinionOffset>
+      </li>
+    </stages>
+  </ThoughtDef>
+
+  <!-- Social thought: orphan grateful to rescuer (fading) -->
+  <ThoughtDef>
+    <defName>WarOrphans_RescuedMe</defName>
+    <thoughtClass>Thought_MemorySocial</thoughtClass>
+    <durationDays>60</durationDays>
+    <stackLimit>1</stackLimit>
+    <stages>
+      <li>
+        <label>rescued me from war</label>
+        <description>They took me in when I had nowhere else to go. I owe them everything.</description>
+        <baseOpinionOffset>20</baseOpinionOffset>
+      </li>
+    </stages>
+  </ThoughtDef>
+
+  <!-- Social thought: colonist feels good about rescuing orphan (fading) -->
+  <ThoughtDef>
+    <defName>WarOrphans_RescuedOrphan</defName>
+    <thoughtClass>Thought_MemorySocial</thoughtClass>
+    <durationDays>60</durationDays>
+    <stackLimit>1</stackLimit>
+    <stages>
+      <li>
+        <label>rescued war orphan</label>
+        <description>We saved this child from the war. It feels right.</description>
+        <baseOpinionOffset>15</baseOpinionOffset>
       </li>
     </stages>
   </ThoughtDef>
