@@ -19,7 +19,7 @@
   <ThoughtDef>
     <defName>WarOrphans_EscapedWarTogether</defName>
     <thoughtClass>Thought_MemorySocial</thoughtClass>
-    <durationDays>60</durationDays>
+    <durationDays>3600</durationDays>
     <stackLimit>1</stackLimit>
     <stages>
       <li>

@@ -145,14 +145,18 @@ namespace WarOrphans
             if (orphans.Count == 0)
                 return;
 
-            // "Escaped war together" social bond between all orphans
+            // "Escaped war together" permanent social bond between all orphans
             ThoughtDef escapedTogether = DefDatabase<ThoughtDef>.GetNamed("WarOrphans_EscapedWarTogether");
             for (int a = 0; a < orphans.Count; a++)
             {
                 for (int b = 0; b < orphans.Count; b++)
                 {
                     if (a != b)
-                        orphans[a].needs?.mood?.thoughts?.memories?.TryGainMemory(escapedTogether, orphans[b]);
+                    {
+                        Thought_MemorySocial thought = (Thought_MemorySocial)ThoughtMaker.MakeThought(escapedTogether);
+                        thought.permanent = true;
+                        orphans[a].needs?.mood?.thoughts?.memories?.TryGainMemory(thought, orphans[b]);
+                    }
                 }
             }
 
