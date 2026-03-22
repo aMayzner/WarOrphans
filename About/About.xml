@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ModMetaData>
+  <name>War Orphans</name>
+  <author>Anna</author>
+  <supportedVersions>
+    <li>1.5</li>
+  </supportedVersions>
+  <modDependencies>
+    <li>
+      <packageId>ludeon.rimworld</packageId>
+      <displayName>RimWorld</displayName>
+    </li>
+    <li>
+      <packageId>ludeon.rimworld.biotech</packageId>
+      <displayName>Biotech</displayName>
+    </li>
+  </modDependencies>
+  <packageId>anna.warorphans</packageId>
+  <description>Adds a quest where war-torn settlements beg you to take in their orphaned children. Accept the quest and up to 5 children will join your colony.</description>
+</ModMetaData>
