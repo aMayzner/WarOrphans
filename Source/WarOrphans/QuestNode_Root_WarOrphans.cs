@@ -99,6 +99,32 @@ namespace WarOrphans
                             DefDatabase<ThoughtDef>.GetNamed("WarOrphans_ParentsDied"));
                     }
 
+                    // Malnutrition — all children are underfed
+                    Hediff malnutrition = HediffMaker.MakeHediff(HediffDefOf.Malnutrition, child);
+                    malnutrition.Severity = Rand.Range(0.15f, 0.6f);
+                    child.health.AddHediff(malnutrition);
+
+                    // Injuries — older children had more exposure to violence
+                    float injuryChance = childAge / 13f; // age 3 = 23%, age 13 = 100%
+                    int injuryCount = 0;
+                    while (injuryCount < 3 && Rand.Chance(injuryChance))
+                    {
+                        BodyPartRecord part = child.health.hediffSet.GetRandomNotMissingPart(
+                            DamageDefOf.Cut, BodyPartHeight.Undefined, BodyPartDepth.Outside);
+                        if (part == null) break;
+                        DamageDef dmgType = HealthUtility.RandomViolenceDamageType();
+                        float dmgAmount = Rand.Range(1f, 6f);
+                        DamageInfo dinfo = new DamageInfo(dmgType, dmgAmount, 0f, -1f, null, part);
+                        dinfo.SetAllowDamagePropagation(false);
+                        if (!child.health.WouldDieAfterAddingHediff(
+                            HealthUtility.GetHediffDefFromDamage(dmgType, child, part), part, dmgAmount))
+                        {
+                            child.TakeDamage(dinfo);
+                        }
+                        injuryCount++;
+                        injuryChance *= 0.6f; // diminishing chance for each additional injury
+                    }
+
                     // Tatter their clothes — these children fled a war
                     if (child.apparel != null)
                     {
