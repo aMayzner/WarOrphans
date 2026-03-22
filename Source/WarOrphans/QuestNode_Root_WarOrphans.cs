@@ -68,10 +68,7 @@ namespace WarOrphans
 
                 for (int i = 0; i < family.Count; i++)
                 {
-                    float age = Rand.Range(0.1f, 13f);
-                    DevelopmentalStage stage = age < 3f
-                        ? DevelopmentalStage.Baby
-                        : DevelopmentalStage.Child;
+                    float age = Rand.Range(3f, 13f);
                     Pawn child = PawnGenerator.GeneratePawn(new PawnGenerationRequest(
                         kind: pawnKind,
                         faction: faction,
@@ -80,7 +77,7 @@ namespace WarOrphans
                         canGeneratePawnRelations: false,
                         colonistRelationChanceFactor: 0f,
                         forcedXenotype: RollXenotype(xenotypeChances, baselinerChance) ?? XenotypeDefOf.Baseliner,
-                        developmentalStages: stage,
+                        developmentalStages: DevelopmentalStage.Child,
                         fixedBiologicalAge: age,
                         fixedChronologicalAge: age
                     ));
