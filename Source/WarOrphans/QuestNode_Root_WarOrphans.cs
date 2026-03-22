@@ -69,6 +69,11 @@ namespace WarOrphans
                 for (int i = 0; i < family.Count; i++)
                 {
                     float age = Rand.Range(0.1f, 13f);
+                    // Use proper developmental stages so children get child-appropriate
+                    // skills, backstories, and body size
+                    DevelopmentalStage stage = age < 3f
+                        ? DevelopmentalStage.Baby | DevelopmentalStage.Newborn
+                        : DevelopmentalStage.Child;
                     Pawn child = PawnGenerator.GeneratePawn(new PawnGenerationRequest(
                         kind: pawnKind,
                         faction: faction,
@@ -76,13 +81,11 @@ namespace WarOrphans
                         forceGenerateNewPawn: true,
                         canGeneratePawnRelations: false,
                         colonistRelationChanceFactor: 0f,
-                        forcedXenotype: RollXenotype(xenotypeChances, baselinerChance) ?? XenotypeDefOf.Baseliner
+                        forcedXenotype: RollXenotype(xenotypeChances, baselinerChance) ?? XenotypeDefOf.Baseliner,
+                        developmentalStages: stage,
+                        fixedBiologicalAge: age,
+                        fixedChronologicalAge: age
                     ));
-
-                    // Set age after generation to avoid conflicts with other mods
-                    long ageTicks = (long)(age * 3600000f);
-                    child.ageTracker.AgeBiologicalTicks = ageTicks;
-                    child.ageTracker.AgeChronologicalTicks = ageTicks;
 
                     // Sibling relation is implied automatically from sharing parents
                     child.relations.AddDirectRelation(PawnRelationDefOf.Parent, mother);
