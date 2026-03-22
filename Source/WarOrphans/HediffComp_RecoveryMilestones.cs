@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using RimWorld;
 using Verse;
 
@@ -21,6 +23,20 @@ namespace WarOrphans
             "WarOrphans_Recovery_FeelingSafer", // entered stage 1 (troubled) from worse
             "WarOrphans_Recovery_Improving",    // entered stage 2 (severe) from worse
             null                               // stage 3 (extreme) — no positive thought here
+        };
+
+        // Positive traits that can emerge from overcoming trauma
+        private static readonly TraitDef[] recoveryTraits = new[]
+        {
+            TraitDefOf.Kind,
+            TraitDefOf.Industriousness,
+            TraitDefOf.GreatMemory,
+        };
+
+        // Trait degree for Industriousness (1 = Industrious, 2 = Hard Worker)
+        private static readonly Dictionary<TraitDef, int> traitDegrees = new Dictionary<TraitDef, int>
+        {
+            { TraitDefOf.Industriousness, 1 }
         };
 
         public override void CompPostTick(ref float severityAdjustment)
@@ -59,11 +75,46 @@ namespace WarOrphans
             if (thought != null)
                 Pawn.needs?.mood?.thoughts?.memories?.TryGainMemory(thought);
 
+            // 40% chance of gaining a positive trait from overcoming trauma
+            if (Rand.Chance(0.4f))
+                TryGainRecoveryTrait();
+
             Find.LetterStack.ReceiveLetter(
                 Pawn.Name.ToStringShort + " has recovered",
                 Pawn.Name.ToStringShort + " has overcome the war trauma. The nightmares have stopped. "
                     + "This place is home now.",
                 LetterDefOf.PositiveEvent, Pawn);
+        }
+
+        private void TryGainRecoveryTrait()
+        {
+            if (Pawn.story?.traits == null)
+                return;
+
+            // Shuffle and try each trait until one works
+            List<TraitDef> candidates = recoveryTraits.ToList();
+            candidates.Shuffle();
+
+            foreach (TraitDef traitDef in candidates)
+            {
+                // Skip if pawn already has this trait or a conflicting one
+                int degree = traitDegrees.TryGetValue(traitDef, out int d) ? d : 0;
+                if (Pawn.story.traits.HasTrait(traitDef))
+                    continue;
+
+                Trait newTrait = new Trait(traitDef, degree);
+                if (Pawn.story.traits.allTraits.Any(t => t.def.ConflictsWith(newTrait)))
+                    continue;
+
+                Pawn.story.traits.GainTrait(newTrait);
+
+                Find.LetterStack.ReceiveLetter(
+                    Pawn.Name.ToStringShort + " has grown",
+                    Pawn.Name.ToStringShort + " has emerged from the trauma with a new strength: "
+                        + newTrait.LabelCap + ". What they went through shaped who they've become.",
+                    LetterDefOf.PositiveEvent, Pawn);
+                break;
+            }
         }
 
         public override void CompExposeData()
