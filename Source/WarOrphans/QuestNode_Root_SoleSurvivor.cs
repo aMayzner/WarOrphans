@@ -65,6 +65,15 @@ namespace WarOrphans
                 fixedChronologicalAge: age
             ));
 
+            // Survival skills — this child kept themselves alive alone
+            if (child.skills != null)
+            {
+                child.skills.GetSkill(SkillDefOf.Melee).Level += Rand.RangeInclusive(2, 4);
+                child.skills.GetSkill(SkillDefOf.Plants).Level += Rand.RangeInclusive(1, 3);
+                child.skills.GetSkill(SkillDefOf.Animals).Level += Rand.RangeInclusive(1, 3);
+                child.skills.GetSkill(SkillDefOf.Medicine).Level += Rand.RangeInclusive(1, 2);
+            }
+
             // Dead parents
             Pawn mother = GenerateDeadParent(Gender.Female, pawnKind, xenotype, faction);
             Pawn father = GenerateDeadParent(Gender.Male, pawnKind, xenotype, faction);
