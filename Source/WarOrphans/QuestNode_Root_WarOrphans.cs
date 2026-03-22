@@ -77,6 +77,10 @@ namespace WarOrphans
                 Pawn mother = GenerateDeadParent(Gender.Female, pawnKind, RollXenotype(xenotypeChances));
                 Pawn father = GenerateDeadParent(Gender.Male, pawnKind, RollXenotype(xenotypeChances));
 
+                // Dead parents must be world pawns for relations to show up
+                Find.WorldPawns.PassToWorld(mother);
+                Find.WorldPawns.PassToWorld(father);
+
                 foreach (int idx in family)
                 {
                     float age = Rand.Range(0.1f, 13f);
@@ -118,6 +122,10 @@ namespace WarOrphans
                         ThoughtDef parentsDied = DefDatabase<ThoughtDef>.GetNamed("WarOrphans_ParentsDied");
                         child.needs?.mood?.thoughts?.memories?.TryGainMemory(parentsDied);
                     }
+
+                    // Register as world pawn so RimWorld can spawn them on quest accept
+                    if (!child.IsWorldPawn())
+                        Find.WorldPawns.PassToWorld(child);
 
                     generated[idx] = child;
                     orphans.Add(child);
