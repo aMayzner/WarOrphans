@@ -179,7 +179,8 @@ namespace WarOrphans
             {
                 quest.SetFaction(orphans.Cast<Thing>(), Faction.OfPlayer);
                 quest.PawnsArrive(orphans, null, map.Parent, PawnsArrivalModeDefOf.EdgeWalkIn);
-                QuestGen_End.End(quest, QuestEndOutcome.Success);
+                QuestGen_End.End(quest, QuestEndOutcome.Success,
+                    goodwillChangeAmount: 15, goodwillChangeFactionOf: faction);
             });
 
             quest.Signal(signalReject, delegate
