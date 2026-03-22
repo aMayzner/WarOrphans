@@ -18,16 +18,14 @@ namespace WarOrphans
             int orphanCount = Rand.RangeInclusive(1, 7);
 
             // Pick a random non-hostile, non-player humanlike faction that has settlements
-            Faction faction = Find.FactionManager.AllFactions
-                .Where(f => f != Faction.OfPlayer
-                    && !f.Hidden
-                    && f.def.humanlikeFaction
-                    && !f.HostileTo(Faction.OfPlayer)
-                    && Find.WorldObjects.Settlements.Any(s => s.Faction == f))
-                .RandomElementWithFallback(null);
+            Faction faction = FindValidFaction();
 
             if (faction == null)
+            {
+                // Must always set description or quest generation errors
+                slate.Set("resolvedQuestDescription", "No suitable faction found.");
                 return;
+            }
 
             // Pick one of this faction's real settlements
             Settlement settlement = Find.WorldObjects.Settlements
@@ -213,17 +211,23 @@ namespace WarOrphans
             return parent;
         }
 
+        private Faction FindValidFaction()
+        {
+            return Find.FactionManager.AllFactions
+                .Where(f => f != Faction.OfPlayer
+                    && !f.Hidden
+                    && f.def.humanlikeFaction
+                    && !f.HostileTo(Faction.OfPlayer)
+                    && Find.WorldObjects.Settlements.Any(s => s.Faction == f))
+                .RandomElementWithFallback(null);
+        }
+
         protected override bool TestRunInt(Slate slate)
         {
             if (QuestGen_Get.GetMap() == null)
                 return false;
 
-            return Find.FactionManager.AllFactions.Any(f =>
-                f != Faction.OfPlayer
-                && !f.Hidden
-                && f.def.humanlikeFaction
-                && !f.HostileTo(Faction.OfPlayer)
-                && Find.WorldObjects.Settlements.Any(s => s.Faction == f));
+            return FindValidFaction() != null;
         }
     }
 }
