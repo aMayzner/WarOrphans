@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <WarOrphans.QuestName.WarOrphans>War Orphans</WarOrphans.QuestName.WarOrphans>
+  <WarOrphans.QuestName.OrphanedChildren>Orphaned Children</WarOrphans.QuestName.OrphanedChildren>
+  <WarOrphans.QuestName.ChildrenInNeed>Children in Need</WarOrphans.QuestName.ChildrenInNeed>
+  <WarOrphans.Letter.Label>War Orphans Arrived</WarOrphans.Letter.Label>
+  <WarOrphans.Letter.Text>{0} {1} orphans from {2} have arrived. Please take good care of them.</WarOrphans.Letter.Text>
+  <WarOrphans.Quest.Description>{0} has been devastated by war. {1} are desperate — they have {2} {3} orphaned children who will die without someone to care for them. They beg you to take them in.</WarOrphans.Quest.Description>
+</LanguageData>

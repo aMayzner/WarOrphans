@@ -2,6 +2,7 @@
 <ModMetaData>
   <name>War Orphans</name>
   <author>Anna</author>
+  <url>https://github.com/aMayzner/WarOrphans</url>
   <supportedVersions>
     <li>1.5</li>
   </supportedVersions>
@@ -15,6 +16,19 @@
       <displayName>Biotech</displayName>
     </li>
   </modDependencies>
+  <loadAfter>
+    <li>ludeon.rimworld</li>
+    <li>ludeon.rimworld.biotech</li>
+  </loadAfter>
   <packageId>anna.warorphans</packageId>
-  <description>Adds a quest where war-torn settlements beg you to take in their orphaned children. Accept the quest and up to 5 children will join your colony.</description>
+  <description>War Orphans adds a quest where war-torn settlements beg you to take in their orphaned children.
+
+Features:
+- Receive up to 5 orphaned children of any age, from babies to teens
+- Children match the faction's xenotype (Waster, Neanderthal, etc.)
+- Orphans come in sibling groups with shared dead parents
+- Older children carry babies and toddlers who can't walk
+- Parents show as deceased in the social tab
+
+Requires Biotech DLC for child mechanics.</description>
 </ModMetaData>

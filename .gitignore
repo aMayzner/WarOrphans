@@ -4,3 +4,5 @@
 bin/
 obj/
 *.pdb
+Assemblies/*.dll
+About/PublishedFileId.txt
