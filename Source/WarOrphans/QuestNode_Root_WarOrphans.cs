@@ -151,16 +151,16 @@ namespace WarOrphans
             else if (orphanCount <= 5) quest.challengeRating = 3;
             else quest.challengeRating = 4;
 
-            // Quest description rules
+            // Quest description — fully resolved, no XML template needed
+            string questDescription = place + " has been devastated by war. " + factionName
+                + " are desperate — they have " + xenotypeSummary
+                + " orphaned children who will die without someone to care for them. They beg you to take them in.";
+
             List<Rule> rules = new List<Rule>
             {
-                new Rule_String("place", place),
-                new Rule_String("orphanCount", orphanCount.ToString()),
-                new Rule_String("xenotypeSummary", xenotypeSummary),
-                new Rule_String("factionName", factionName)
+                new Rule_String("questDescription", questDescription)
             };
             QuestGen.AddQuestDescriptionRules(rules);
-            QuestGen.AddQuestNameRules(rules);
 
             // Reserve pawns and set up arrival
             quest.ReservePawns(orphans);
@@ -182,11 +182,6 @@ namespace WarOrphans
             // End quest after acceptance
             quest.End(QuestEndOutcome.Success, inSignal: acceptSignal);
 
-            // Quest offer description
-            string questDescription = place + " has been devastated by war. " + factionName
-                + " are desperate — they have " + xenotypeSummary
-                + " orphaned children who will die without someone to care for them. They beg you to take them in.";
-            slate.Set("questDescription", questDescription);
         }
 
         private XenotypeDef RollXenotype(List<XenotypeChance> chances)
