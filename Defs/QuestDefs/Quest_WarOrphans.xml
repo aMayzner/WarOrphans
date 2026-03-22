@@ -11,7 +11,9 @@
     <defaultCharity>true</defaultCharity>
     <canGiveRoyalFavor>false</canGiveRoyalFavor>
     <minRefireDays>15</minRefireDays>
-    <expireDaysRange>3~7</expireDaysRange>
+    <autoAccept>true</autoAccept>
+    <defaultHidden>true</defaultHidden>
+    <isRootSpecial>true</isRootSpecial>
     <questNameRules>
       <rulesStrings>
         <li>questName->War Orphans</li>
@@ -19,6 +21,11 @@
         <li>questName->Children in Need</li>
       </rulesStrings>
     </questNameRules>
+    <questDescriptionRules>
+      <rulesStrings>
+        <li>questDescription-></li>
+      </rulesStrings>
+    </questDescriptionRules>
     <root Class="WarOrphans.QuestNode_Root_WarOrphans" />
   </QuestScriptDef>
 </Defs>

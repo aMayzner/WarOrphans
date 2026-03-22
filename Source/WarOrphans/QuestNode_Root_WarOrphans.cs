@@ -9,31 +9,29 @@ namespace WarOrphans
 {
     public class QuestNode_Root_WarOrphans : QuestNode
     {
+        private const int TimeoutTicks = 120000; // 2 days to decide
+
         protected override void RunInt()
         {
             Quest quest = QuestGen.quest;
             Slate slate = QuestGen.slate;
             Map map = QuestGen_Get.GetMap();
 
-            int orphanCount = Rand.RangeInclusive(1, 7);
+            slate.Set("resolvedQuestDescription", "War orphans need your help.");
 
             Faction faction = FindValidFaction();
-
             if (faction == null)
-            {
-                slate.Set("resolvedQuestDescription", "No suitable faction found.");
                 return;
-            }
 
-            // Pick one of this faction's real settlements
             Settlement settlement = Find.WorldObjects.Settlements
                 .Where(s => s.Faction == faction)
                 .RandomElement();
             string place = settlement.Label;
+            string factionName = faction.Name;
 
             PawnKindDef pawnKind = faction.def.basicMemberKind ?? PawnKindDefOf.Villager;
 
-            // Build the faction's xenotype chance list for per-pawn rolls
+            // Build xenotype chance list
             List<XenotypeChance> xenotypeChances = new List<XenotypeChance>();
             XenotypeSet xenoSet = faction.def.xenotypeSet;
             if (xenoSet != null && xenoSet.Count > 0)
@@ -42,13 +40,9 @@ namespace WarOrphans
                     xenotypeChances.Add(xenoSet[i]);
             }
 
-            string factionName = faction.Name;
+            int orphanCount = Rand.RangeInclusive(1, 7);
 
-            slate.Set("orphanCount", orphanCount);
-            slate.Set("map", map);
-            slate.Set("faction", faction);
-
-            // Group orphans into sibling families
+            // Group into sibling families
             List<List<int>> families = new List<List<int>>();
             List<int> currentFamily = new List<int> { 0 };
             families.Add(currentFamily);
@@ -63,39 +57,34 @@ namespace WarOrphans
                 }
             }
 
-            // Generate dead parents and children
+            // Generate orphans
             List<Pawn> orphans = new List<Pawn>();
-            Pawn[] generated = new Pawn[orphanCount];
             foreach (List<int> family in families)
             {
-                Pawn mother = GenerateDeadParent(Gender.Female, pawnKind, RollXenotype(xenotypeChances));
-                Pawn father = GenerateDeadParent(Gender.Male, pawnKind, RollXenotype(xenotypeChances));
+                Pawn mother = GenerateDeadParent(Gender.Female, pawnKind, RollXenotype(xenotypeChances), faction);
+                Pawn father = GenerateDeadParent(Gender.Male, pawnKind, RollXenotype(xenotypeChances), faction);
 
                 foreach (int idx in family)
                 {
                     float age = Rand.Range(0.1f, 13f);
-                    XenotypeDef childXenotype = RollXenotype(xenotypeChances);
                     PawnGenerationRequest request = new PawnGenerationRequest(
                         kind: pawnKind,
-                        faction: null,
+                        faction: faction,
                         context: PawnGenerationContext.NonPlayer,
                         forceGenerateNewPawn: true,
-                        fixedBiologicalAge: age,
-                        fixedChronologicalAge: age,
                         canGeneratePawnRelations: false,
                         colonistRelationChanceFactor: 0f,
-                        forcedXenotype: childXenotype
+                        forcedXenotype: RollXenotype(xenotypeChances) ?? XenotypeDefOf.Baseliner
                     );
                     Pawn child = PawnGenerator.GeneratePawn(request);
 
+                    // Set age after generation to avoid mod conflicts
+                    long ageTicks = (long)(age * 3600000f);
+                    child.ageTracker.AgeBiologicalTicks = ageTicks;
+                    child.ageTracker.AgeChronologicalTicks = ageTicks;
+
                     child.relations.AddDirectRelation(PawnRelationDefOf.Parent, mother);
                     child.relations.AddDirectRelation(PawnRelationDefOf.Parent, father);
-
-                    foreach (int sibIdx in family)
-                    {
-                        if (sibIdx < idx && generated[sibIdx] != null)
-                            child.relations.AddDirectRelation(PawnRelationDefOf.Sibling, generated[sibIdx]);
-                    }
 
                     // War trauma scaled by age
                     int childAge = child.ageTracker.AgeBiologicalYears;
@@ -111,30 +100,14 @@ namespace WarOrphans
                         child.needs?.mood?.thoughts?.memories?.TryGainMemory(parentsDied);
                     }
 
-                    // Must be a world pawn for quest system to work
                     if (!child.IsWorldPawn())
                         Find.WorldPawns.PassToWorld(child);
 
-                    generated[idx] = child;
                     orphans.Add(child);
                 }
             }
 
-            // Babies/toddlers (under 3) can't walk — an older child carries them
-            List<Pawn> toddlers = orphans.Where(p => p.ageTracker.AgeBiologicalYears < 3).ToList();
-            List<Pawn> walkers = orphans.Where(p => p.ageTracker.AgeBiologicalYears >= 3)
-                .OrderByDescending(p => p.ageTracker.AgeBiologicalYears).ToList();
-            int carrierIndex = 0;
-            foreach (Pawn toddler in toddlers)
-            {
-                if (carrierIndex < walkers.Count)
-                {
-                    walkers[carrierIndex].carryTracker.TryStartCarry(toddler);
-                    carrierIndex++;
-                }
-            }
-
-            // Summarize xenotypes for quest text
+            // Xenotype summary
             var xenotypeCounts = orphans
                 .GroupBy(p => p.genes?.Xenotype?.label ?? "Baseliner")
                 .Select(g => g.Count() + " " + g.Key)
@@ -147,26 +120,47 @@ namespace WarOrphans
             else if (orphanCount <= 5) quest.challengeRating = 3;
             else quest.challengeRating = 4;
 
-            // Quest description
+            // Description
             string questDescription = place + " has been devastated by war. " + factionName
                 + " are desperate — they have " + xenotypeSummary
                 + " orphaned children who will die without someone to care for them. They beg you to take them in.";
             slate.Set("resolvedQuestDescription", questDescription);
 
-            // Reserve pawns
-            quest.ReservePawns(orphans);
+            // --- Accept/Reject signals (vanilla WandererJoin pattern) ---
+            string signalAccept = QuestGenUtility.HardcodedSignalWithQuestID("Accept");
+            string signalReject = QuestGenUtility.HardcodedSignalWithQuestID("Reject");
 
-            // On accept: set faction then spawn — matches vanilla WandererJoin pattern
-            string signalAccept = QuestGenUtility.HardcodedSignalWithQuestID("quest.accepted");
+            // On accept: set faction, spawn, end success
             quest.Signal(signalAccept, delegate
             {
                 quest.SetFaction(orphans.Cast<Thing>(), Faction.OfPlayer);
-                quest.PawnsArrive(orphans, null, map.Parent, PawnsArrivalModeDefOf.EdgeWalkIn,
-                    customLetterLabel: "War Orphans Arrived",
-                    customLetterText: xenotypeSummary + " orphans from " + factionName
-                        + " have arrived. Please take good care of them.");
+                quest.PawnsArrive(orphans, null, map.Parent, PawnsArrivalModeDefOf.EdgeWalkIn);
                 quest.End(QuestEndOutcome.Success);
             });
+
+            // On reject: end fail
+            quest.Signal(signalReject, delegate
+            {
+                quest.End(QuestEndOutcome.Fail);
+            });
+
+            // Timeout: auto-reject after 2 days
+            quest.Delay(TimeoutTicks, delegate
+            {
+                quest.End(QuestEndOutcome.Fail);
+            });
+
+            // Send accept/reject letter (like vanilla wanderer join)
+            TaggedString letterLabel = "War Orphans from " + factionName;
+            TaggedString letterText = questDescription;
+
+            ChoiceLetter_AcceptJoiner letter = (ChoiceLetter_AcceptJoiner)LetterMaker.MakeLetter(
+                letterLabel, letterText, LetterDefOf.AcceptJoiner);
+            letter.signalAccept = signalAccept;
+            letter.signalReject = signalReject;
+            letter.quest = quest;
+            letter.StartTimeout(TimeoutTicks);
+            Find.LetterStack.ReceiveLetter(letter);
         }
 
         private XenotypeDef RollXenotype(List<XenotypeChance> chances)
@@ -176,22 +170,23 @@ namespace WarOrphans
             return chances.RandomElementByWeight(x => x.chance).xenotype;
         }
 
-        private Pawn GenerateDeadParent(Gender gender, PawnKindDef pawnKind, XenotypeDef xenotype)
+        private Pawn GenerateDeadParent(Gender gender, PawnKindDef pawnKind, XenotypeDef xenotype, Faction faction)
         {
             float age = Rand.Range(25f, 50f);
             PawnGenerationRequest request = new PawnGenerationRequest(
                 kind: pawnKind,
-                faction: null,
+                faction: faction,
                 context: PawnGenerationContext.NonPlayer,
                 forceGenerateNewPawn: true,
-                fixedBiologicalAge: age,
-                fixedChronologicalAge: age,
                 fixedGender: gender,
                 canGeneratePawnRelations: false,
                 colonistRelationChanceFactor: 0f,
-                forcedXenotype: xenotype
+                forcedXenotype: xenotype ?? XenotypeDefOf.Baseliner
             );
             Pawn parent = PawnGenerator.GeneratePawn(request);
+            long ageTicks = (long)(age * 3600000f);
+            parent.ageTracker.AgeBiologicalTicks = ageTicks;
+            parent.ageTracker.AgeChronologicalTicks = ageTicks;
             parent.Kill(null);
             return parent;
         }
@@ -214,7 +209,6 @@ namespace WarOrphans
         {
             if (QuestGen_Get.GetMap() == null)
                 return false;
-
             return FindValidFaction() != null;
         }
     }
