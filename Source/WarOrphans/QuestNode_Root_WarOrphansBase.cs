@@ -123,6 +123,33 @@ namespace WarOrphans
                         injuryChance *= 0.6f;
                     }
 
+                    // Small chance of a missing body part (healed, not fresh)
+                    // Older children have higher chance: age 3 = ~3%, age 13 = ~15%
+                    float missingPartChance = childAge / 90f;
+                    if (Rand.Chance(missingPartChance))
+                    {
+                        // Only pick non-vital outside parts (limbs, fingers, ears, eyes)
+                        BodyPartRecord limbPart = child.health.hediffSet.GetNotMissingParts(
+                                BodyPartHeight.Undefined, BodyPartDepth.Outside)
+                            .Where(p => !p.def.tags.NullOrEmpty()
+                                && (p.def.tags.Contains(BodyPartTagDefOf.ManipulationLimbSegment)
+                                    || p.def.tags.Contains(BodyPartTagDefOf.MovingLimbSegment)
+                                    || p.def.tags.Contains(BodyPartTagDefOf.ManipulationLimbDigit)
+                                    || p.def.tags.Contains(BodyPartTagDefOf.MovingLimbDigit)
+                                    || p.def.tags.Contains(BodyPartTagDefOf.SightSource)
+                                    || p.def.tags.Contains(BodyPartTagDefOf.HearingSource)))
+                            .RandomElementWithFallback(null);
+
+                        if (limbPart != null)
+                        {
+                            Hediff_MissingPart missing = (Hediff_MissingPart)HediffMaker.MakeHediff(
+                                HediffDefOf.MissingBodyPart, child, limbPart);
+                            missing.lastInjury = HediffDefOf.Cut;
+                            missing.IsFresh = false;
+                            child.health.AddHediff(missing, limbPart);
+                        }
+                    }
+
                     // Tattered clothes
                     if (child.apparel != null)
                     {
