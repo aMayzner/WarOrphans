@@ -14,4 +14,19 @@
       </li>
     </stages>
   </ThoughtDef>
+
+  <!-- Social thought: bond from escaping war together -->
+  <ThoughtDef>
+    <defName>WarOrphans_EscapedWarTogether</defName>
+    <thoughtClass>Thought_MemorySocial</thoughtClass>
+    <durationDays>60</durationDays>
+    <stackLimit>1</stackLimit>
+    <stages>
+      <li>
+        <label>escaped war together</label>
+        <description>We escaped the war together. That's a bond that doesn't break easily.</description>
+        <baseOpinionOffset>25</baseOpinionOffset>
+      </li>
+    </stages>
+  </ThoughtDef>
 </Defs>

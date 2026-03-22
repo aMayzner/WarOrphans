@@ -105,24 +105,18 @@ namespace WarOrphans
                     child.health.AddHediff(malnutrition);
 
                     // Injuries — older children had more exposure to violence
-                    float injuryChance = childAge / 13f; // age 3 = 23%, age 13 = 100%
+                    float injuryChance = childAge / 13f;
                     int injuryCount = 0;
                     while (injuryCount < 3 && Rand.Chance(injuryChance))
                     {
                         BodyPartRecord part = child.health.hediffSet.GetRandomNotMissingPart(
                             DamageDefOf.Cut, BodyPartHeight.Undefined, BodyPartDepth.Outside);
                         if (part == null) break;
-                        DamageDef dmgType = HealthUtility.RandomViolenceDamageType();
-                        float dmgAmount = Rand.Range(1f, 6f);
-                        DamageInfo dinfo = new DamageInfo(dmgType, dmgAmount, 0f, -1f, null, part);
-                        dinfo.SetAllowDamagePropagation(false);
-                        if (!child.health.WouldDieAfterAddingHediff(
-                            HealthUtility.GetHediffDefFromDamage(dmgType, child, part), part, dmgAmount))
-                        {
-                            child.TakeDamage(dinfo);
-                        }
+                        Hediff_Injury injury = (Hediff_Injury)HediffMaker.MakeHediff(HediffDefOf.Cut, child, part);
+                        injury.Severity = Rand.Range(1f, 5f);
+                        child.health.AddHediff(injury, part);
                         injuryCount++;
-                        injuryChance *= 0.6f; // diminishing chance for each additional injury
+                        injuryChance *= 0.6f;
                     }
 
                     // Tatter their clothes — these children fled a war
@@ -142,6 +136,23 @@ namespace WarOrphans
                         Find.WorldPawns.PassToWorld(child);
 
                     orphans.Add(child);
+                }
+            }
+
+            // Filter out any non-human pawns (e.g. androids from mods)
+            orphans.RemoveAll(p => p.def != ThingDefOf.Human);
+
+            if (orphans.Count == 0)
+                return;
+
+            // "Escaped war together" social bond between all orphans
+            ThoughtDef escapedTogether = DefDatabase<ThoughtDef>.GetNamed("WarOrphans_EscapedWarTogether");
+            for (int a = 0; a < orphans.Count; a++)
+            {
+                for (int b = 0; b < orphans.Count; b++)
+                {
+                    if (a != b)
+                        orphans[a].needs?.mood?.thoughts?.memories?.TryGainMemory(escapedTogether, orphans[b]);
                 }
             }
 
