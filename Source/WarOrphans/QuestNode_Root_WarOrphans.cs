@@ -99,6 +99,19 @@ namespace WarOrphans
                             DefDatabase<ThoughtDef>.GetNamed("WarOrphans_ParentsDied"));
                     }
 
+                    // Tatter their clothes — these children fled a war
+                    if (child.apparel != null)
+                    {
+                        foreach (Apparel ap in child.apparel.WornApparel)
+                        {
+                            // Damage to 10-40% durability
+                            ap.HitPoints = (int)(ap.MaxHitPoints * Rand.Range(0.1f, 0.4f));
+                            // 25% chance each piece is tainted (worn by the dead)
+                            if (Rand.Chance(0.25f))
+                                ap.WornByCorpse = true;
+                        }
+                    }
+
                     if (!child.IsWorldPawn())
                         Find.WorldPawns.PassToWorld(child);
 
