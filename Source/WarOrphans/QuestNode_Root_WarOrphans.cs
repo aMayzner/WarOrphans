@@ -32,12 +32,15 @@ namespace WarOrphans
             PawnKindDef pawnKind = faction.def.basicMemberKind ?? PawnKindDefOf.Villager;
 
             // Build xenotype chance list for per-pawn rolls
+            // XenotypeSet only stores non-Baseliner chances; Baseliner is implicit
             List<XenotypeChance> xenotypeChances = new List<XenotypeChance>();
+            float baselinerChance = 1f;
             XenotypeSet xenoSet = faction.def.xenotypeSet;
             if (xenoSet != null && xenoSet.Count > 0)
             {
                 for (int i = 0; i < xenoSet.Count; i++)
                     xenotypeChances.Add(xenoSet[i]);
+                baselinerChance = xenoSet.BaselinerChance;
             }
 
             // Group orphans into sibling families (60% chance of being siblings)
@@ -60,8 +63,8 @@ namespace WarOrphans
             List<Pawn> orphans = new List<Pawn>();
             foreach (List<int> family in families)
             {
-                Pawn mother = GenerateDeadParent(Gender.Female, pawnKind, RollXenotype(xenotypeChances), faction);
-                Pawn father = GenerateDeadParent(Gender.Male, pawnKind, RollXenotype(xenotypeChances), faction);
+                Pawn mother = GenerateDeadParent(Gender.Female, pawnKind, RollXenotype(xenotypeChances, baselinerChance), faction);
+                Pawn father = GenerateDeadParent(Gender.Male, pawnKind, RollXenotype(xenotypeChances, baselinerChance), faction);
 
                 for (int i = 0; i < family.Count; i++)
                 {
@@ -73,7 +76,7 @@ namespace WarOrphans
                         forceGenerateNewPawn: true,
                         canGeneratePawnRelations: false,
                         colonistRelationChanceFactor: 0f,
-                        forcedXenotype: RollXenotype(xenotypeChances) ?? XenotypeDefOf.Baseliner
+                        forcedXenotype: RollXenotype(xenotypeChances, baselinerChance) ?? XenotypeDefOf.Baseliner
                     ));
 
                     // Set age after generation to avoid conflicts with other mods
@@ -154,10 +157,13 @@ namespace WarOrphans
             Find.LetterStack.ReceiveLetter(letter);
         }
 
-        private XenotypeDef RollXenotype(List<XenotypeChance> chances)
+        private XenotypeDef RollXenotype(List<XenotypeChance> chances, float baselinerChance)
         {
+            // Roll Baseliner based on the implicit chance (1 - sum of explicit chances)
+            if (baselinerChance > 0f && Rand.Chance(baselinerChance))
+                return XenotypeDefOf.Baseliner;
             if (chances.NullOrEmpty())
-                return null;
+                return XenotypeDefOf.Baseliner;
             return chances.RandomElementByWeight(x => x.chance).xenotype;
         }
 
