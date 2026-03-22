@@ -234,16 +234,13 @@ namespace WarOrphans
 
         protected Faction FindValidFaction()
         {
-            foreach (Faction f in Find.FactionManager.AllFactions)
-            {
-                if (f == Faction.OfPlayer) continue;
-                if (f.Hidden) continue;
-                if (!f.def.humanlikeFaction) continue;
-                if (f.HostileTo(Faction.OfPlayer)) continue;
-                if (!Find.WorldObjects.Settlements.Any(s => s.Faction == f)) continue;
-                return f;
-            }
-            return null;
+            return Find.FactionManager.AllFactions
+                .Where(f => f != Faction.OfPlayer
+                    && !f.Hidden
+                    && f.def.humanlikeFaction
+                    && !f.HostileTo(Faction.OfPlayer)
+                    && Find.WorldObjects.Settlements.Any(s => s.Faction == f))
+                .RandomElementWithFallback(null);
         }
 
         protected override bool TestRunInt(Slate slate)
