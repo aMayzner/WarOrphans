@@ -19,12 +19,16 @@
       </li>
     </comps>
     <stages>
-      <!-- Severity 0.0 - 0.25: Lingering sadness (fading) -->
+      <!-- Severity 0.0 - 0.25: Fading -->
       <li>
         <label>fading</label>
         <minSeverity>0</minSeverity>
         <overrideMoodBase>-3</overrideMoodBase>
+        <statOffsets>
+          <MentalBreakThreshold>0.02</MentalBreakThreshold>
+        </statOffsets>
       </li>
+
       <!-- Severity 0.25 - 0.5: Troubled -->
       <li>
         <label>troubled</label>
@@ -34,7 +38,16 @@
         <allowedMentalBreakIntensities>
           <li>Minor</li>
         </allowedMentalBreakIntensities>
+        <socialFightChanceFactor>1.5</socialFightChanceFactor>
+        <statOffsets>
+          <MentalBreakThreshold>0.05</MentalBreakThreshold>
+          <GlobalLearningFactor>-0.1</GlobalLearningFactor>
+        </statOffsets>
+        <statFactors>
+          <RestRateMultiplier>0.9</RestRateMultiplier>
+        </statFactors>
       </li>
+
       <!-- Severity 0.5 - 0.75: Severe -->
       <li>
         <label>severe</label>
@@ -45,13 +58,24 @@
           <li>Minor</li>
           <li>Major</li>
         </allowedMentalBreakIntensities>
+        <socialFightChanceFactor>2.0</socialFightChanceFactor>
         <capMods>
           <li>
             <capacity>Consciousness</capacity>
             <offset>-0.05</offset>
           </li>
         </capMods>
+        <statOffsets>
+          <MentalBreakThreshold>0.08</MentalBreakThreshold>
+          <GlobalLearningFactor>-0.25</GlobalLearningFactor>
+          <PsychicSensitivity>0.15</PsychicSensitivity>
+        </statOffsets>
+        <statFactors>
+          <RestRateMultiplier>0.8</RestRateMultiplier>
+          <SocialImpact>0.8</SocialImpact>
+        </statFactors>
       </li>
+
       <!-- Severity 0.75 - 1.0: Extreme -->
       <li>
         <label>extreme</label>
@@ -63,6 +87,7 @@
           <li>Major</li>
           <li>Extreme</li>
         </allowedMentalBreakIntensities>
+        <socialFightChanceFactor>3.0</socialFightChanceFactor>
         <capMods>
           <li>
             <capacity>Consciousness</capacity>
@@ -73,6 +98,16 @@
             <offset>-0.10</offset>
           </li>
         </capMods>
+        <statOffsets>
+          <MentalBreakThreshold>0.12</MentalBreakThreshold>
+          <GlobalLearningFactor>-0.4</GlobalLearningFactor>
+          <PsychicSensitivity>0.3</PsychicSensitivity>
+        </statOffsets>
+        <statFactors>
+          <RestRateMultiplier>0.65</RestRateMultiplier>
+          <SocialImpact>0.6</SocialImpact>
+          <WorkSpeedGlobal>0.85</WorkSpeedGlobal>
+        </statFactors>
       </li>
     </stages>
   </HediffDef>
