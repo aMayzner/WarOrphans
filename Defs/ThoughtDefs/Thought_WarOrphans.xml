@@ -59,4 +59,47 @@
       </li>
     </stages>
   </ThoughtDef>
+
+  <!-- Recovery milestones (triggered by HediffComp_RecoveryMilestones) -->
+  <ThoughtDef>
+    <defName>WarOrphans_Recovery_Improving</defName>
+    <thoughtClass>Thought_Memory</thoughtClass>
+    <durationDays>10</durationDays>
+    <stackLimit>1</stackLimit>
+    <stages>
+      <li>
+        <label>the nightmares are less frequent</label>
+        <description>I still have bad dreams, but not every night anymore. Maybe things are getting better.</description>
+        <baseMoodEffect>3</baseMoodEffect>
+      </li>
+    </stages>
+  </ThoughtDef>
+
+  <ThoughtDef>
+    <defName>WarOrphans_Recovery_FeelingSafer</defName>
+    <thoughtClass>Thought_Memory</thoughtClass>
+    <durationDays>15</durationDays>
+    <stackLimit>1</stackLimit>
+    <stages>
+      <li>
+        <label>starting to feel safe</label>
+        <description>For the first time in a long time, I don't flinch at every loud noise. This place feels... safe.</description>
+        <baseMoodEffect>6</baseMoodEffect>
+      </li>
+    </stages>
+  </ThoughtDef>
+
+  <ThoughtDef>
+    <defName>WarOrphans_Recovery_Healed</defName>
+    <thoughtClass>Thought_Memory</thoughtClass>
+    <durationDays>30</durationDays>
+    <stackLimit>1</stackLimit>
+    <stages>
+      <li>
+        <label>this place is home</label>
+        <description>The war feels like a lifetime ago. I have a home now. I have people who care about me. I'm going to be okay.</description>
+        <baseMoodEffect>10</baseMoodEffect>
+      </li>
+    </stages>
+  </ThoughtDef>
 </Defs>

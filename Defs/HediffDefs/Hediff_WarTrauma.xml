@@ -17,6 +17,7 @@
         <healIntervalTicksStanding>120000</healIntervalTicksStanding>
         <healAmount>0.02</healAmount>
       </li>
+      <li Class="WarOrphans.HediffCompProperties_RecoveryMilestones" />
     </comps>
     <stages>
       <!-- Severity 0.0 - 0.25: Fading -->
