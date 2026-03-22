@@ -4,7 +4,6 @@ using RimWorld;
 using RimWorld.Planet;
 using RimWorld.QuestGen;
 using Verse;
-using Verse.Grammar;
 
 namespace WarOrphans
 {
@@ -159,16 +158,11 @@ namespace WarOrphans
             else if (orphanCount <= 5) quest.challengeRating = 3;
             else quest.challengeRating = 4;
 
-            // Quest description — fully resolved, no XML template needed
+            // Quest description — set directly on slate to bypass grammar resolution
             string questDescription = place + " has been devastated by war. " + factionName
                 + " are desperate — they have " + xenotypeSummary
                 + " orphaned children who will die without someone to care for them. They beg you to take them in.";
-
-            List<Rule> rules = new List<Rule>
-            {
-                new Rule_String("questDescription", questDescription)
-            };
-            QuestGen.AddQuestDescriptionRules(rules);
+            slate.Set("resolvedQuestDescription", questDescription);
 
             // Reserve pawns and set up arrival
             quest.ReservePawns(orphans);
