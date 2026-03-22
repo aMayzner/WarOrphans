@@ -28,4 +28,33 @@
     </questDescriptionRules>
     <root Class="WarOrphans.QuestNode_Root_WarOrphans" />
   </QuestScriptDef>
+
+  <QuestScriptDef>
+    <defName>WarOrphans_Persecuted</defName>
+    <rootSelectionWeight>0.5</rootSelectionWeight>
+    <rootMinPoints>0</rootMinPoints>
+    <rootEarliestDay>15</rootEarliestDay>
+    <rootIncreasesPopulation>true</rootIncreasesPopulation>
+    <affectedByPopulation>true</affectedByPopulation>
+    <affectedByPoints>false</affectedByPoints>
+    <defaultCharity>true</defaultCharity>
+    <canGiveRoyalFavor>false</canGiveRoyalFavor>
+    <minRefireDays>30</minRefireDays>
+    <autoAccept>true</autoAccept>
+    <defaultHidden>true</defaultHidden>
+    <isRootSpecial>true</isRootSpecial>
+    <questNameRules>
+      <rulesStrings>
+        <li>questName->Persecuted Orphans</li>
+        <li>questName->Hunted Children</li>
+        <li>questName->Refugee Children</li>
+      </rulesStrings>
+    </questNameRules>
+    <questDescriptionRules>
+      <rulesStrings>
+        <li>questDescription-></li>
+      </rulesStrings>
+    </questDescriptionRules>
+    <root Class="WarOrphans.QuestNode_Root_PersecutedOrphans" />
+  </QuestScriptDef>
 </Defs>
