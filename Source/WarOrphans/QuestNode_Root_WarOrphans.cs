@@ -69,10 +69,8 @@ namespace WarOrphans
                 for (int i = 0; i < family.Count; i++)
                 {
                     float age = Rand.Range(0.1f, 13f);
-                    // Use proper developmental stages so children get child-appropriate
-                    // skills, backstories, and body size
                     DevelopmentalStage stage = age < 3f
-                        ? DevelopmentalStage.Baby | DevelopmentalStage.Newborn
+                        ? DevelopmentalStage.Baby
                         : DevelopmentalStage.Child;
                     Pawn child = PawnGenerator.GeneratePawn(new PawnGenerationRequest(
                         kind: pawnKind,
