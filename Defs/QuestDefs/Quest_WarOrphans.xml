@@ -41,7 +41,7 @@
     <affectedByPoints>false</affectedByPoints>
     <defaultCharity>true</defaultCharity>
     <canGiveRoyalFavor>false</canGiveRoyalFavor>
-    <minRefireDays>30</minRefireDays>
+    <minRefireDays>15</minRefireDays>
     <autoAccept>true</autoAccept>
     <defaultHidden>true</defaultHidden>
     <isRootSpecial>true</isRootSpecial>
@@ -66,13 +66,13 @@
     <defName>WarOrphans_SoleSurvivor</defName>
     <rootSelectionWeight>0.3</rootSelectionWeight>
     <rootMinPoints>0</rootMinPoints>
-    <rootEarliestDay>20</rootEarliestDay>
+    <rootEarliestDay>15</rootEarliestDay>
     <rootIncreasesPopulation>true</rootIncreasesPopulation>
     <affectedByPopulation>true</affectedByPopulation>
     <affectedByPoints>false</affectedByPoints>
     <defaultCharity>true</defaultCharity>
     <canGiveRoyalFavor>false</canGiveRoyalFavor>
-    <minRefireDays>45</minRefireDays>
+    <minRefireDays>15</minRefireDays>
     <autoAccept>true</autoAccept>
     <defaultHidden>true</defaultHidden>
     <isRootSpecial>true</isRootSpecial>
