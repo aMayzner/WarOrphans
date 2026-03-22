@@ -185,34 +185,6 @@ namespace WarOrphans
             if (orphans.Count == 0)
                 return;
 
-            // Permanent "escaped war together" social bond between orphans
-            ThoughtDef escapedTogether = DefDatabase<ThoughtDef>.GetNamed("WarOrphans_EscapedWarTogether");
-            for (int a = 0; a < orphans.Count; a++)
-            {
-                for (int b = 0; b < orphans.Count; b++)
-                {
-                    if (a != b)
-                    {
-                        Thought_MemorySocial thought = (Thought_MemorySocial)ThoughtMaker.MakeThought(escapedTogether);
-                        thought.permanent = true;
-                        orphans[a].needs?.mood?.thoughts?.memories?.TryGainMemory(thought, orphans[b]);
-                    }
-                }
-            }
-
-            // Mutual gratitude between orphans and existing colonists
-            ThoughtDef rescuedMe = DefDatabase<ThoughtDef>.GetNamed("WarOrphans_RescuedMe");
-            ThoughtDef rescuedOrphan = DefDatabase<ThoughtDef>.GetNamed("WarOrphans_RescuedOrphan");
-            List<Pawn> colonists = map.mapPawns.FreeColonists.ToList();
-            foreach (Pawn orphan in orphans)
-            {
-                foreach (Pawn colonist in colonists)
-                {
-                    orphan.needs?.mood?.thoughts?.memories?.TryGainMemory(rescuedMe, colonist);
-                    colonist.needs?.mood?.thoughts?.memories?.TryGainMemory(rescuedOrphan, orphan);
-                }
-            }
-
             // Quest text
             string questDescription = BuildQuestDescription(place, factionName, orphans);
             slate.Set("resolvedQuestDescription", questDescription);
@@ -235,32 +207,29 @@ namespace WarOrphans
                     goodwillChangeAmount: 15, goodwillChangeFactionOf: faction);
             });
 
+            // Apply social thoughts AFTER pawns arrive (needs must be initialized)
+            QuestPart_ApplyOrphanThoughts thoughtsPart = new QuestPart_ApplyOrphanThoughts();
+            thoughtsPart.inSignal = signalAccept;
+            thoughtsPart.orphans.AddRange(orphans);
+            thoughtsPart.map = map;
+            quest.AddPart(thoughtsPart);
+
             quest.Signal(signalReject, delegate
             {
-                // Rejecting children hurts relations and mood
                 QuestGen_End.End(quest, QuestEndOutcome.Fail,
                     goodwillChangeAmount: -10, goodwillChangeFactionOf: faction);
             });
 
-            ThoughtDef rejectedOrphans = DefDatabase<ThoughtDef>.GetNamed("WarOrphans_RejectedOrphans");
-            quest.Signal(signalReject, delegate
-            {
-                foreach (Pawn colonist in map.mapPawns.FreeColonists)
-                    colonist.needs?.mood?.thoughts?.memories?.TryGainMemory(rejectedOrphans);
-            });
+            // Reject mood penalty via QuestPart too
+            QuestPart_RejectMood rejectPart = new QuestPart_RejectMood();
+            rejectPart.inSignal = signalReject;
+            rejectPart.map = map;
+            quest.AddPart(rejectPart);
 
             quest.Delay(TimeoutTicks, delegate
             {
                 QuestGen_End.End(quest, QuestEndOutcome.Fail,
                     goodwillChangeAmount: -5, goodwillChangeFactionOf: faction);
-            });
-
-            // Colony-wide mood boost on accept
-            ThoughtDef tookInOrphans = DefDatabase<ThoughtDef>.GetNamed("WarOrphans_TookInOrphans");
-            quest.Signal(signalAccept, delegate
-            {
-                foreach (Pawn colonist in map.mapPawns.FreeColonists)
-                    colonist.needs?.mood?.thoughts?.memories?.TryGainMemory(tookInOrphans);
             });
 
             // Accept/reject letter — named after the settlement

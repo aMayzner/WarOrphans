@@ -147,16 +147,6 @@ namespace WarOrphans
             if (!child.IsWorldPawn())
                 Find.WorldPawns.PassToWorld(child);
 
-            // Gratitude toward colonists
-            ThoughtDef rescuedMe = DefDatabase<ThoughtDef>.GetNamed("WarOrphans_RescuedMe");
-            ThoughtDef rescuedOrphan = DefDatabase<ThoughtDef>.GetNamed("WarOrphans_RescuedOrphan");
-            List<Pawn> colonists = map.mapPawns.FreeColonists.ToList();
-            foreach (Pawn colonist in colonists)
-            {
-                child.needs?.mood?.thoughts?.memories?.TryGainMemory(rescuedMe, colonist);
-                colonist.needs?.mood?.thoughts?.memories?.TryGainMemory(rescuedOrphan, child);
-            }
-
             // Quest text
             string childName = child.Name.ToStringShort;
             string questDescription = childName + " is the sole survivor of " + place + "'s destruction. "
@@ -183,32 +173,28 @@ namespace WarOrphans
                     goodwillChangeAmount: 15, goodwillChangeFactionOf: faction);
             });
 
+            // Apply social thoughts after pawns arrive
+            QuestPart_ApplyOrphanThoughts thoughtsPart = new QuestPart_ApplyOrphanThoughts();
+            thoughtsPart.inSignal = signalAccept;
+            thoughtsPart.orphans.AddRange(orphans);
+            thoughtsPart.map = map;
+            quest.AddPart(thoughtsPart);
+
             quest.Signal(signalReject, delegate
             {
                 QuestGen_End.End(quest, QuestEndOutcome.Fail,
                     goodwillChangeAmount: -10, goodwillChangeFactionOf: faction);
             });
 
-            // Reject/timeout mood penalty
-            ThoughtDef rejectedOrphans = DefDatabase<ThoughtDef>.GetNamed("WarOrphans_RejectedOrphans");
-            quest.Signal(signalReject, delegate
-            {
-                foreach (Pawn colonist in map.mapPawns.FreeColonists)
-                    colonist.needs?.mood?.thoughts?.memories?.TryGainMemory(rejectedOrphans);
-            });
+            QuestPart_RejectMood rejectPart = new QuestPart_RejectMood();
+            rejectPart.inSignal = signalReject;
+            rejectPart.map = map;
+            quest.AddPart(rejectPart);
 
             quest.Delay(TimeoutTicks, delegate
             {
                 QuestGen_End.End(quest, QuestEndOutcome.Fail,
                     goodwillChangeAmount: -5, goodwillChangeFactionOf: faction);
-            });
-
-            // Colony mood boost on accept
-            ThoughtDef tookInOrphans = DefDatabase<ThoughtDef>.GetNamed("WarOrphans_TookInOrphans");
-            quest.Signal(signalAccept, delegate
-            {
-                foreach (Pawn colonist in map.mapPawns.FreeColonists)
-                    colonist.needs?.mood?.thoughts?.memories?.TryGainMemory(tookInOrphans);
             });
 
             // Letter
