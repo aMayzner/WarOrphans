@@ -135,19 +135,19 @@ namespace WarOrphans
             {
                 quest.SetFaction(orphans.Cast<Thing>(), Faction.OfPlayer);
                 quest.PawnsArrive(orphans, null, map.Parent, PawnsArrivalModeDefOf.EdgeWalkIn);
-                quest.End(QuestEndOutcome.Success);
+                QuestGen_End.End(quest, QuestEndOutcome.Success);
             });
 
             // On reject: end fail
             quest.Signal(signalReject, delegate
             {
-                quest.End(QuestEndOutcome.Fail);
+                QuestGen_End.End(quest, QuestEndOutcome.Fail);
             });
 
             // Timeout: auto-reject after 2 days
             quest.Delay(TimeoutTicks, delegate
             {
-                quest.End(QuestEndOutcome.Fail);
+                QuestGen_End.End(quest, QuestEndOutcome.Fail);
             });
 
             // Send accept/reject letter (like vanilla wanderer join)
