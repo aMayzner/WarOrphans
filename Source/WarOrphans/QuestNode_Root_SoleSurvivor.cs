@@ -185,12 +185,30 @@ namespace WarOrphans
 
             quest.Signal(signalReject, delegate
             {
-                QuestGen_End.End(quest, QuestEndOutcome.Fail);
+                QuestGen_End.End(quest, QuestEndOutcome.Fail,
+                    goodwillChangeAmount: -10, goodwillChangeFactionOf: faction);
+            });
+
+            // Reject/timeout mood penalty
+            ThoughtDef rejectedOrphans = DefDatabase<ThoughtDef>.GetNamed("WarOrphans_RejectedOrphans");
+            quest.Signal(signalReject, delegate
+            {
+                foreach (Pawn colonist in map.mapPawns.FreeColonists)
+                    colonist.needs?.mood?.thoughts?.memories?.TryGainMemory(rejectedOrphans);
             });
 
             quest.Delay(TimeoutTicks, delegate
             {
-                QuestGen_End.End(quest, QuestEndOutcome.Fail);
+                QuestGen_End.End(quest, QuestEndOutcome.Fail,
+                    goodwillChangeAmount: -5, goodwillChangeFactionOf: faction);
+            });
+
+            // Colony mood boost on accept
+            ThoughtDef tookInOrphans = DefDatabase<ThoughtDef>.GetNamed("WarOrphans_TookInOrphans");
+            quest.Signal(signalAccept, delegate
+            {
+                foreach (Pawn colonist in map.mapPawns.FreeColonists)
+                    colonist.needs?.mood?.thoughts?.memories?.TryGainMemory(tookInOrphans);
             });
 
             // Letter
