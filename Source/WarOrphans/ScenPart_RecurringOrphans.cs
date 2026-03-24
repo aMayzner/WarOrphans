@@ -12,8 +12,8 @@ namespace WarOrphans
 
         // First event within 10 days, then every 30-90 days
         private const float FirstEventMaxDays = 10f;
-        private const float MinIntervalDays = 30f;
-        private const float MaxIntervalDays = 90f;
+        private const float MinIntervalDays = 45f;
+        private const float MaxIntervalDays = 120f;
 
         public override void PostGameStart()
         {
