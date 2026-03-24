@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Defs>
-  <QuestScriptDef>
-    <defName>WarOrphans_Rescue</defName>
-    <rootSelectionWeight>1.0</rootSelectionWeight>
+  <QuestScriptDef Abstract="True" Name="WarOrphansBase">
     <rootMinPoints>0</rootMinPoints>
-    <rootEarliestDay>10</rootEarliestDay>
+    <rootEarliestDay>15</rootEarliestDay>
     <rootIncreasesPopulation>true</rootIncreasesPopulation>
     <affectedByPopulation>true</affectedByPopulation>
     <affectedByPoints>false</affectedByPoints>
@@ -16,6 +14,17 @@
     <isRootSpecial>true</isRootSpecial>
     <successHistoryEvent MayRequire="Ludeon.RimWorld.Ideology">CharityFulfilled_WandererJoins</successHistoryEvent>
     <failedOrExpiredHistoryEvent MayRequire="Ludeon.RimWorld.Ideology">CharityRefused_WandererJoins</failedOrExpiredHistoryEvent>
+    <questDescriptionRules>
+      <rulesStrings>
+        <li>questDescription-></li>
+      </rulesStrings>
+    </questDescriptionRules>
+  </QuestScriptDef>
+
+  <QuestScriptDef ParentName="WarOrphansBase">
+    <defName>WarOrphans_Rescue</defName>
+    <rootSelectionWeight>1.0</rootSelectionWeight>
+    <rootEarliestDay>10</rootEarliestDay>
     <questNameRules>
       <rulesStrings>
         <li>questName->War Orphans</li>
@@ -23,30 +32,12 @@
         <li>questName->Children in Need</li>
       </rulesStrings>
     </questNameRules>
-    <questDescriptionRules>
-      <rulesStrings>
-        <li>questDescription-></li>
-      </rulesStrings>
-    </questDescriptionRules>
     <root Class="WarOrphans.QuestNode_Root_WarOrphans" />
   </QuestScriptDef>
 
-  <QuestScriptDef>
+  <QuestScriptDef ParentName="WarOrphansBase">
     <defName>WarOrphans_Persecuted</defName>
     <rootSelectionWeight>0.5</rootSelectionWeight>
-    <rootMinPoints>0</rootMinPoints>
-    <rootEarliestDay>15</rootEarliestDay>
-    <rootIncreasesPopulation>true</rootIncreasesPopulation>
-    <affectedByPopulation>true</affectedByPopulation>
-    <affectedByPoints>false</affectedByPoints>
-    <defaultCharity>true</defaultCharity>
-    <canGiveRoyalFavor>false</canGiveRoyalFavor>
-    <minRefireDays>15</minRefireDays>
-    <autoAccept>true</autoAccept>
-    <defaultHidden>true</defaultHidden>
-    <isRootSpecial>true</isRootSpecial>
-    <successHistoryEvent MayRequire="Ludeon.RimWorld.Ideology">CharityFulfilled_WandererJoins</successHistoryEvent>
-    <failedOrExpiredHistoryEvent MayRequire="Ludeon.RimWorld.Ideology">CharityRefused_WandererJoins</failedOrExpiredHistoryEvent>
     <questNameRules>
       <rulesStrings>
         <li>questName->Persecuted Orphans</li>
@@ -54,30 +45,12 @@
         <li>questName->Refugee Children</li>
       </rulesStrings>
     </questNameRules>
-    <questDescriptionRules>
-      <rulesStrings>
-        <li>questDescription-></li>
-      </rulesStrings>
-    </questDescriptionRules>
     <root Class="WarOrphans.QuestNode_Root_PersecutedOrphans" />
   </QuestScriptDef>
 
-  <QuestScriptDef>
+  <QuestScriptDef ParentName="WarOrphansBase">
     <defName>WarOrphans_SoleSurvivor</defName>
     <rootSelectionWeight>0.3</rootSelectionWeight>
-    <rootMinPoints>0</rootMinPoints>
-    <rootEarliestDay>15</rootEarliestDay>
-    <rootIncreasesPopulation>true</rootIncreasesPopulation>
-    <affectedByPopulation>true</affectedByPopulation>
-    <affectedByPoints>false</affectedByPoints>
-    <defaultCharity>true</defaultCharity>
-    <canGiveRoyalFavor>false</canGiveRoyalFavor>
-    <minRefireDays>15</minRefireDays>
-    <autoAccept>true</autoAccept>
-    <defaultHidden>true</defaultHidden>
-    <isRootSpecial>true</isRootSpecial>
-    <successHistoryEvent MayRequire="Ludeon.RimWorld.Ideology">CharityFulfilled_WandererJoins</successHistoryEvent>
-    <failedOrExpiredHistoryEvent MayRequire="Ludeon.RimWorld.Ideology">CharityRefused_WandererJoins</failedOrExpiredHistoryEvent>
     <questNameRules>
       <rulesStrings>
         <li>questName->Sole Survivor</li>
@@ -85,11 +58,6 @@
         <li>questName->Only One Left</li>
       </rulesStrings>
     </questNameRules>
-    <questDescriptionRules>
-      <rulesStrings>
-        <li>questDescription-></li>
-      </rulesStrings>
-    </questDescriptionRules>
     <root Class="WarOrphans.QuestNode_Root_SoleSurvivor" />
   </QuestScriptDef>
 </Defs>

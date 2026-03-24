@@ -1,4 +1,3 @@
-using System.Linq;
 using RimWorld;
 using Verse;
 
@@ -15,8 +14,11 @@ namespace WarOrphans
             if (signal.tag != inSignal)
                 return;
 
+            if (map == null)
+                return;
+
             ThoughtDef rejected = DefDatabase<ThoughtDef>.GetNamed("WarOrphans_RejectedOrphans");
-            foreach (Pawn colonist in map.mapPawns.FreeColonists.ToList())
+            foreach (Pawn colonist in map.mapPawns.FreeColonists)
                 colonist.needs?.mood?.thoughts?.memories?.TryGainMemory(rejected);
         }
 

@@ -11,9 +11,37 @@ namespace WarOrphans
     {
         private const int TimeoutTicks = 120000; // 2 days to decide
 
+        protected List<Pawn> lastGeneratedOrphans;
+
         protected abstract string BuildQuestDescription(string place, string factionName, List<Pawn> orphans);
         protected abstract string BuildLetterLabel(string place, string factionName);
         protected abstract XenotypeDef PickXenotype(List<XenotypeChance> xenotypeChances, float baselinerChance);
+
+        protected virtual int GetOrphanCount() => Rand.RangeInclusive(1, 7);
+        protected virtual float GetMinAge() => 3f;
+        protected virtual float GetMaxAge() => 13f;
+        protected virtual float GetTraumaSeverity(int childAge) => childAge / 13f;
+        protected virtual float GetMalnutritionSeverity() => Rand.Range(0.15f, 0.6f);
+        protected virtual float GetMissingPartChance(int childAge) => childAge / 90f;
+        protected virtual float GetMinClothDurability() => 0.1f;
+        protected virtual float GetMaxClothDurability() => 0.4f;
+        protected virtual float GetTaintedChance() => 0.25f;
+        protected virtual void ApplyExtraEffects(Pawn child, Quest quest, Map map, Faction faction, string signalAccept) { }
+        protected virtual void ApplyExtraSkills(Pawn child) { }
+
+        protected static BodyPartRecord GetRandomNonVitalOutsidePart(Pawn pawn)
+        {
+            return pawn.health.hediffSet.GetNotMissingParts(
+                    BodyPartHeight.Undefined, BodyPartDepth.Outside)
+                .Where(p => !p.def.tags.NullOrEmpty()
+                    && (p.def.tags.Contains(BodyPartTagDefOf.ManipulationLimbSegment)
+                        || p.def.tags.Contains(BodyPartTagDefOf.MovingLimbSegment)
+                        || p.def.tags.Contains(BodyPartTagDefOf.ManipulationLimbDigit)
+                        || p.def.tags.Contains(BodyPartTagDefOf.MovingLimbDigit)
+                        || p.def.tags.Contains(BodyPartTagDefOf.SightSource)
+                        || p.def.tags.Contains(BodyPartTagDefOf.HearingSource)))
+                .RandomElementWithFallback(null);
+        }
 
         protected override void RunInt()
         {
@@ -46,7 +74,7 @@ namespace WarOrphans
             }
 
             // Group orphans into sibling families (60% chance of being siblings)
-            int orphanCount = Rand.RangeInclusive(1, 7);
+            int orphanCount = GetOrphanCount();
             List<List<int>> families = new List<List<int>>();
             List<int> currentFamily = new List<int> { 0 };
             families.Add(currentFamily);
@@ -71,7 +99,7 @@ namespace WarOrphans
 
                 for (int i = 0; i < family.Count; i++)
                 {
-                    float age = Rand.Range(3f, 13f);
+                    float age = Rand.Range(GetMinAge(), GetMaxAge());
                     XenotypeDef childXeno = PickXenotype(xenotypeChances, baselinerChance);
                     Pawn child = PawnGenerator.GeneratePawn(new PawnGenerationRequest(
                         kind: pawnKind,
@@ -89,22 +117,28 @@ namespace WarOrphans
                     child.relations.AddDirectRelation(PawnRelationDefOf.Parent, mother);
                     child.relations.AddDirectRelation(PawnRelationDefOf.Parent, father);
 
-                    // War trauma — older children are more affected
+                    ApplyExtraSkills(child);
+
+                    // War trauma -- older children are more affected
                     int childAge = child.ageTracker.AgeBiologicalYears;
                     if (childAge >= 3)
                     {
-                        Hediff trauma = HediffMaker.MakeHediff(
-                            DefDatabase<HediffDef>.GetNamed("WarOrphans_WarTrauma"), child);
-                        trauma.Severity = childAge / 13f;
-                        child.health.AddHediff(trauma);
+                        HediffDef traumaDef = DefDatabase<HediffDef>.GetNamedSilentFail("WarOrphans_WarTrauma");
+                        if (traumaDef != null)
+                        {
+                            Hediff trauma = HediffMaker.MakeHediff(traumaDef, child);
+                            trauma.Severity = GetTraumaSeverity(childAge);
+                            child.health.AddHediff(trauma);
+                        }
 
-                        child.needs?.mood?.thoughts?.memories?.TryGainMemory(
-                            DefDatabase<ThoughtDef>.GetNamed("WarOrphans_ParentsDied"));
+                        ThoughtDef parentsDied = DefDatabase<ThoughtDef>.GetNamedSilentFail("WarOrphans_ParentsDied");
+                        if (parentsDied != null)
+                            child.needs?.mood?.thoughts?.memories?.TryGainMemory(parentsDied);
                     }
 
                     // Malnutrition
                     Hediff malnutrition = HediffMaker.MakeHediff(HediffDefOf.Malnutrition, child);
-                    malnutrition.Severity = Rand.Range(0.15f, 0.6f);
+                    malnutrition.Severity = GetMalnutritionSeverity();
                     child.health.AddHediff(malnutrition);
 
                     // Temperature exposure based on current map conditions
@@ -122,7 +156,7 @@ namespace WarOrphans
                         child.health.AddHediff(heat);
                     }
 
-                    // Injuries — older children had more exposure
+                    // Injuries -- older children had more exposure
                     float injuryChance = childAge / 13f;
                     int injuryCount = 0;
                     while (injuryCount < 3 && Rand.Chance(injuryChance))
@@ -138,19 +172,10 @@ namespace WarOrphans
                     }
 
                     // Small chance of missing body part
-                    float missingPartChance = childAge / 90f;
+                    float missingPartChance = GetMissingPartChance(childAge);
                     if (Rand.Chance(missingPartChance))
                     {
-                        BodyPartRecord limbPart = child.health.hediffSet.GetNotMissingParts(
-                                BodyPartHeight.Undefined, BodyPartDepth.Outside)
-                            .Where(p => !p.def.tags.NullOrEmpty()
-                                && (p.def.tags.Contains(BodyPartTagDefOf.ManipulationLimbSegment)
-                                    || p.def.tags.Contains(BodyPartTagDefOf.MovingLimbSegment)
-                                    || p.def.tags.Contains(BodyPartTagDefOf.ManipulationLimbDigit)
-                                    || p.def.tags.Contains(BodyPartTagDefOf.MovingLimbDigit)
-                                    || p.def.tags.Contains(BodyPartTagDefOf.SightSource)
-                                    || p.def.tags.Contains(BodyPartTagDefOf.HearingSource)))
-                            .RandomElementWithFallback(null);
+                        BodyPartRecord limbPart = GetRandomNonVitalOutsidePart(child);
 
                         if (limbPart != null)
                         {
@@ -167,8 +192,8 @@ namespace WarOrphans
                     {
                         foreach (Apparel ap in child.apparel.WornApparel)
                         {
-                            ap.HitPoints = (int)(ap.MaxHitPoints * Rand.Range(0.1f, 0.4f));
-                            if (Rand.Chance(0.25f))
+                            ap.HitPoints = (int)(ap.MaxHitPoints * Rand.Range(GetMinClothDurability(), GetMaxClothDurability()));
+                            if (Rand.Chance(GetTaintedChance()))
                                 ap.WornByCorpse = true;
                         }
                     }
@@ -184,6 +209,8 @@ namespace WarOrphans
             orphans.RemoveAll(p => p.def != ThingDefOf.Human);
             if (orphans.Count == 0)
                 return;
+
+            lastGeneratedOrphans = orphans;
 
             // Quest text
             string questDescription = BuildQuestDescription(place, factionName, orphans);
@@ -232,7 +259,7 @@ namespace WarOrphans
                     goodwillChangeAmount: -5, goodwillChangeFactionOf: faction);
             });
 
-            // Accept/reject letter — named after the settlement
+            // Accept/reject letter -- named after the settlement
             ChoiceLetter_AcceptJoiner letter = (ChoiceLetter_AcceptJoiner)LetterMaker.MakeLetter(
                 BuildLetterLabel(place, factionName), questDescription, LetterDefOf.AcceptJoiner);
             letter.signalAccept = signalAccept;
@@ -241,6 +268,10 @@ namespace WarOrphans
             letter.overrideMap = map;
             letter.StartTimeout(TimeoutTicks);
             Find.LetterStack.ReceiveLetter(letter);
+
+            // Subclass hook for extra effects (e.g. raid follow-up)
+            foreach (Pawn orphan in orphans)
+                ApplyExtraEffects(orphan, quest, map, faction, signalAccept);
         }
 
         protected XenotypeDef RollXenotype(List<XenotypeChance> chances, float baselinerChance)
