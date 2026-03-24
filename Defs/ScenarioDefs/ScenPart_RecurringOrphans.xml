@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+  <ScenPartDef>
+    <defName>WarOrphans_RecurringOrphans</defName>
+    <label>recurring orphan events</label>
+    <scenPartClass>WarOrphans.ScenPart_RecurringOrphans</scenPartClass>
+    <category>Misc</category>
+    <maxUses>1</maxUses>
+  </ScenPartDef>
+</Defs>
