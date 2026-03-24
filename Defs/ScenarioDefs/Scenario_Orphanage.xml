@@ -3,9 +3,9 @@
   <ScenarioDef ParentName="ScenarioBase">
     <defName>WarOrphans_OrphanageStart</defName>
     <label>Orphanage start</label>
-    <description>War rages across the rimworld. Settlements burn and children are left behind. You've decided to build a place of refuge — an orphanage in the wilderness. Every few weeks, more war orphans will find their way to your doors. Can you keep them safe, fed, and sane?
+    <description>War rages across the rimworld. Settlements burn and children are left behind. You've decided to build a place of refuge — an orphanage in the wilderness. Orphaned children will regularly arrive at your doors. Can you keep them safe, fed, and sane?
 
-This is a challenging scenario. Orphan events arrive frequently, starting within the first 10 days. You'll need to balance caring for traumatized children with building a colony that can sustain them all.</description>
+This is a challenging scenario. You start with few supplies and orphans arrive every couple of months.</description>
     <scenario>
       <summary>Build an orphanage on the rim. War orphans arrive regularly. Keep them alive.</summary>
       <parts>
@@ -24,7 +24,7 @@ This is a challenging scenario. Orphan events arrive frequently, starting within
           <visible>false</visible>
         </li>
 
-        <!-- Starting supplies — modest, you're building from scratch -->
+        <!-- Starting supplies -->
         <li Class="ScenPart_StartingThing_Defined">
           <def>StartingThing_Defined</def>
           <thingDef>Silver</thingDef>
@@ -50,14 +50,12 @@ This is a challenging scenario. Orphan events arrive frequently, starting within
           <thingDef>Cloth</thingDef>
           <count>100</count>
         </li>
-
-        <!-- A knife and some basics -->
         <li Class="ScenPart_StartingThing_Defined">
           <def>StartingThing_Defined</def>
           <thingDef>MeleeWeapon_Knife</thingDef>
         </li>
 
-        <!-- Recurring orphan events -->
+        <!-- Recurring orphan arrivals: first at day 5-10, then every 45-120 days -->
         <li Class="WarOrphans.ScenPart_RecurringOrphans">
           <def>WarOrphans_RecurringOrphans</def>
         </li>

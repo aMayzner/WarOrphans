@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+  <IncidentDef>
+    <defName>WarOrphans_OrphanArrival</defName>
+    <label>war orphan arrival</label>
+    <category>Misc</category>
+    <targetTags>
+      <li>Map_PlayerHome</li>
+    </targetTags>
+    <workerClass>WarOrphans.IncidentWorker_OrphanArrival</workerClass>
+    <baseChance>0</baseChance>
+    <minPopulation>0</minPopulation>
+  </IncidentDef>
+</Defs>
