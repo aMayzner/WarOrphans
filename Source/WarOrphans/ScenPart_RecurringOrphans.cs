@@ -26,10 +26,19 @@ namespace WarOrphans
         {
             if (Find.TickManager.TicksGame < nextOrphanTick)
                 return;
+            if (Find.AnyPlayerHomeMap == null)
+                return;
 
-            // Pick a random orphan quest
-            string[] questDefs = { "WarOrphans_Rescue", "WarOrphans_Persecuted", "WarOrphans_SoleSurvivor" };
-            float[] weights = { 0.5f, 0.3f, 0.2f };
+            // Immediately schedule next to prevent double-firing
+            nextOrphanTick = float.MaxValue;
+
+            // Pick ONE random orphan quest (not sole survivor for the first event)
+            string[] questDefs = firstEventFired
+                ? new[] { "WarOrphans_Rescue", "WarOrphans_Persecuted", "WarOrphans_SoleSurvivor" }
+                : new[] { "WarOrphans_Rescue", "WarOrphans_Persecuted" };
+            float[] weights = firstEventFired
+                ? new[] { 0.5f, 0.3f, 0.2f }
+                : new[] { 0.6f, 0.4f };
 
             // Weight selection
             float totalWeight = weights.Sum();
